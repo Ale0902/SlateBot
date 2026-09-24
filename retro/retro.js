@@ -25,6 +25,16 @@
     }
   }
 
+  // ---- Message box ----
+  // The text sits centered in a taller frame (see .input-wrap in retro.css);
+  // a click anywhere in the frame, around it, still types in it.
+  const inputFrame = input.closest(".input-wrap");
+  inputFrame.addEventListener("mousedown", (e) => {
+    if (e.target !== inputFrame) return;
+    e.preventDefault();
+    input.focus();
+  });
+
   // ---- Text size ----
   const SIZE_KEY = "celta-chat.retroTextSize";
   let size = Number(load(SIZE_KEY, "16")) || 16;

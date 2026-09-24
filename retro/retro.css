@@ -118,12 +118,12 @@ textarea,
   cursor: var(--cursor-arrow);
 }
 
-/* The hourglass while a reply is on its way, like a busy Windows 98 app.
-   Buttons and the message box keep their own cursors -- you can still
-   type the next message. */
-html:has(.msg.typing),
-html:has(.msg.typing) .msg .bubble,
-html:has(.msg.typing) .msg .bubble img.attachment {
+/* The hourglass while a reply is on its way, like a busy Windows 98 app --
+   only over the conversation, where the reply will appear. Everywhere else
+   keeps its usual pointer, and so do links in the conversation. */
+.chat:has(.msg.typing),
+.chat:has(.msg.typing) .msg .bubble,
+.chat:has(.msg.typing) .msg .bubble img.attachment {
   cursor: var(--cursor-busy);
 }
 
@@ -1197,23 +1197,38 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   font-size: 13px;
 }
 
+/* The message box. The frame is drawn here, and the text area inside it is
+   a transparent line centered in it -- a text area can't center its own
+   text. More lines grow it evenly (main.ts sizes it to what's typed) until
+   it fills the frame, and then it scrolls. */
 .input-wrap {
   grid-area: input;
   position: relative;
   display: flex;
+  align-items: center;
+  height: 108px;
+  background: var(--user-bg);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--sunken);
+  cursor: var(--cursor-text);
+}
+
+/* No focus highlight on the box while typing -- the blinking cursor shows
+   where you are. (Text boxes always count as keyboard-focused, so this also
+   turns off the dotted focus outline.) */
+textarea:focus-visible {
+  outline: none;
 }
 
 textarea {
   flex: 1;
-  min-height: 84px;
-  max-height: 140px;
-  padding: 8px 10px 8px 40px;
+  max-height: 100%;
+  padding: 2px 10px 2px 40px;
   resize: none;
-  background: var(--user-bg);
+  background: transparent;
   color: var(--user-text);
-  border: 1px solid var(--edge-dark);
+  border: none;
   border-radius: 0;
-  box-shadow: var(--sunken);
   outline: none;
   /* A fixed size: the "A" buttons resize the conversation, not the box you
      type in. */
@@ -1222,14 +1237,11 @@ textarea {
   line-height: 1.9;
 }
 
-textarea:focus {
-  border-color: var(--title);
-}
-
 textarea::placeholder {
   color: #9a9680;
 }
 
+/* In the box's top-left corner, whatever the text is doing. */
 .attach-btn {
   position: absolute;
   top: 7px;
