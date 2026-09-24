@@ -1,0 +1,14 @@
+{
+  "name": "gemma-chat",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "python server/bridge.py",
+    "start": "tsc && python server/bridge.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

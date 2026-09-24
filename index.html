@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-theme-id="modern">
+<head>
+<meta charset="UTF-8">
+<script>
+  // Opens the theme picked last time (see THEMES in src/main.ts). This is
+  // the default theme's page, so it runs before anything draws.
+  try {
+    const path = localStorage.getItem("celta-chat.themePath");
+    if (path && /^[a-z0-9-]+\/$/.test(path)) location.replace(path);
+  } catch {}
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gemma Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-row">
+      <div class="brand-mark">C</div>
+      <span>Chud Bot</span>
+    </div>
+
+    <nav class="nav" aria-label="Sidebar navigation">
+      <button type="button" class="nav-item" id="newChatBtn">New chat</button>
+    </nav>
+
+    <div class="nav-section">
+      <div class="section-label">Recents</div>
+      <div class="recent-list" id="recents"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="avatar-mini">A</div>
+      <span>Ale</span>
+    </div>
+  </aside>
+
+  <div class="workspace" id="workspace">
+    <header class="topbar">
+      <div class="title-wrap">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>
+        </button>
+        <span class="title-pill" id="chatTitle">New chat</span>
+      </div>
+      <div class="topbar-actions">
+        <select id="themePicker" class="theme-picker" aria-label="Theme" title="Theme"></select>
+        <button type="button" class="share-btn">Share</button>
+      </div>
+    </header>
+
+    <main id="chat" class="chat" aria-live="polite"></main>
+
+    <!-- Shown instead of the chat while it's empty (see .workspace.is-empty). -->
+    <div class="hero" id="hero">
+      <h1 class="hero-title">Hi! How can I help you today?</h1>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+      <button class="chip" type="button">Explain something simply</button>
+      <button class="chip" type="button">Help me write an email</button>
+      <button class="chip" type="button">Brainstorm ideas with me</button>
+    </div>
+
+    <form id="form" class="composer">
+      <div class="attachment-preview" id="attachmentPreview" hidden></div>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+      <div class="input-wrap">
+        <button type="button" class="attach-btn" id="attachBtn" aria-label="Attach an image" title="Attach an image">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <textarea id="input" rows="1" placeholder="Type your message…" autofocus></textarea>
+      </div>
+      <button class="send" id="sendBtn" type="submit">Send</button>
+    </form>
+
+    <p class="disclaimer">Chud Bot is AI and can make mistakes. Check important info.</p>
+  </div>
+</div>
+
+<script src="dist/main.js" defer></script>
+</body>
+</html>

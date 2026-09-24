@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme-id="retro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chud Bot - Instant Message</title>
+<link rel="stylesheet" href="retro.css">
+</head>
+<body>
+<!-- A 2000s instant-messenger skin for the same app as ../index.html: same
+     dist/main.js, same element ids, same saved chats. -->
+<div class="app window">
+  <header class="titlebar">
+    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
+      <svg viewBox="0 0 12 10" width="14" height="12" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h12v10H0zM1 1v8h3V1zm4 0v8h6V1z" fill="currentColor" fill-rule="evenodd"/></svg>
+    </button>
+    <span class="title-text"><span id="chatTitle">New chat</span> - Instant Message</span>
+  </header>
+
+  <div class="panes">
+    <aside class="sidebar" id="sidebar">
+      <div class="buddy-list">
+        <div class="buddy">
+          <svg viewBox="0 0 18 13" width="22" height="16" shape-rendering="crispEdges" aria-hidden="true"><rect x=".5" y=".5" width="17" height="12" fill="#f7a823" stroke="#3d3a2e"/><path d="M1 1l8 6 8-6" fill="none" stroke="#3d3a2e"/></svg>
+          <div>
+            <div class="buddy-name">ChudBot</div>
+            <div class="buddy-status">online</div>
+          </div>
+        </div>
+        <div class="section-label">Recent IMs</div>
+        <div class="recent-list" id="recents"></div>
+      </div>
+      <button type="button" class="nav-item" id="newChatBtn">
+        <svg viewBox="0 0 14 14" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><rect x=".5" y=".5" width="13" height="13" fill="#ffe45c" stroke="#3d3a2e"/><path d="M3 4h8v1H3zm0 3h8v1H3zm0 3h5v1H3z" fill="#3d3a2e"/></svg>
+        New IM
+      </button>
+    </aside>
+
+    <div class="workspace" id="workspace">
+      <div class="convo">
+        <div class="avatar-col">
+          <div class="buddy-icon">
+            <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+              <rect width="16" height="16" fill="#13295b"/>
+              <rect x="7" y="1" width="2" height="2" fill="#ff5a5a"/>
+              <rect x="7" y="3" width="2" height="1" fill="#cfe9ff"/>
+              <rect x="2" y="6" width="12" height="3" fill="#5aa6e0"/>
+              <rect x="3" y="4" width="10" height="8" fill="#8fd0ff"/>
+              <rect x="5" y="6" width="2" height="2" fill="#13295b"/>
+              <rect x="9" y="6" width="2" height="2" fill="#13295b"/>
+              <rect x="5" y="9" width="6" height="1" fill="#13295b"/>
+              <rect x="5" y="12" width="6" height="3" fill="#5aa6e0"/>
+            </svg>
+          </div>
+          <span class="sn-label">ChudBot</span>
+        </div>
+        <main id="chat" class="chat" aria-live="polite"></main>
+      </div>
+
+      <div class="toolbar">
+        <div class="suggestions" id="suggestions">
+          <button class="chip" type="button">Explain something simply</button>
+          <button class="chip" type="button">Help me write an email</button>
+          <button class="chip" type="button">Brainstorm ideas with me</button>
+        </div>
+        <div class="format-bar">
+          <div class="format-group">
+            <button type="button" class="fmt-btn" id="textColorBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="textColorPicker" aria-label="Text color" title="Text color">
+              <span>A</span><span class="fmt-bar"></span>
+            </button>
+            <div class="popover color-picker" id="textColorPicker" role="dialog" aria-label="Text color" hidden></div>
+          </div>
+          <div class="format-group">
+            <button type="button" class="fmt-btn" id="bgColorBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="bgColorPicker" aria-label="Background color" title="Background color">
+              <span class="fmt-hl">A</span>
+            </button>
+            <div class="popover color-picker" id="bgColorPicker" role="dialog" aria-label="Background color" hidden></div>
+          </div>
+          <span class="fmt-sep" aria-hidden="true"></span>
+          <button type="button" id="textSmaller" class="fmt-btn small-a" aria-label="Smaller text" title="Smaller text">A</button>
+          <button type="button" id="textLarger" class="fmt-btn big-a" aria-label="Larger text" title="Larger text">A</button>
+        </div>
+      </div>
+
+      <form id="form" class="composer">
+        <div class="attachment-preview" id="attachmentPreview" hidden></div>
+        <div class="avatar-col">
+          <!-- Filled in by retro.js with whichever icon you picked. -->
+          <button type="button" class="buddy-icon icon-btn" id="myIconBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="iconPicker" aria-label="Change your buddy icon" title="Change your buddy icon"></button>
+          <span class="sn-label">Ale</span>
+          <div class="popover icon-picker" id="iconPicker" role="dialog" aria-label="Choose a buddy icon" hidden>
+            <div class="popover-title">Choose a Buddy Icon</div>
+            <div class="icon-grid" id="iconGrid"></div>
+            <button type="button" class="popover-btn" id="iconUploadBtn">Upload your own…</button>
+            <input type="file" id="iconFile" accept="image/*" hidden>
+            <p class="popover-note" id="iconNote" hidden></p>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <div class="input-wrap">
+          <button type="button" class="attach-btn" id="attachBtn" aria-label="Attach an image" title="Attach an image">
+            <svg viewBox="0 0 10 10" width="12" height="12" shape-rendering="crispEdges" aria-hidden="true"><path d="M4 1h2v3h3v2H6v3H4V6H1V4h3z" fill="currentColor"/></svg>
+          </button>
+          <textarea id="input" rows="3" placeholder="Type your message…" autofocus></textarea>
+        </div>
+        <button class="send" id="sendBtn" type="submit">
+          <svg viewBox="0 0 30 15" width="48" height="24" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M0 4h7v1H0zm2 3h6v1H2zm-2 3h7v1H0z" fill="#3d3a2e"/>
+            <rect x="10.5" y="1.5" width="18" height="12" fill="#f7a823" stroke="#3d3a2e"/>
+            <path d="M11 2l8.5 6.5L28 2" fill="none" stroke="#3d3a2e"/>
+          </svg>
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-text">Chud Bot is AI and can make mistakes. Check important info.</span>
+    <label class="theme-field">
+      Theme:
+      <select id="themePicker" class="theme-picker"></select>
+    </label>
+  </div>
+</div>
+
+<script src="../dist/main.js" defer></script>
+<script src="retro.js"></script>
+</body>
+</html>

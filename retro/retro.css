@@ -1,0 +1,1119 @@
+/* 2000s instant-messenger skin for the same chat app as ../index.html.
+   dist/main.js builds the same markup here (.msg > .bubble, .recent-item,
+   .link-card, ...), so every class it renders is styled below. */
+
+/* ByteBounce by HipFonts (Igor Ovsyannykov), from 1001fonts.com -- free for
+   personal use only (fonts/bytebounce-license.txt); commercial use needs a
+   license from hipfonts.gumroad.com. It's drawn small for its size (capitals
+   are half the em), so it's scaled up 1.5x here, once, for every use. */
+@font-face {
+  font-family: "ByteBounce";
+  src: url("fonts/bytebounce.woff") format("woff");
+  font-display: swap;
+  size-adjust: 150%;
+}
+
+/* Forced Square by Paul IJsendoorn (DrawPerfect), 100% free on dafont.com.
+   Only fills in what ByteBounce lacks (… × — – ’ “ ”), scaled so those
+   characters come out the same height; the browser only downloads it when
+   one of them shows up. */
+@font-face {
+  font-family: "Forced Square";
+  src: url("fonts/forced-square.woff") format("woff");
+  font-display: swap;
+  size-adjust: 143%;
+}
+
+:root {
+  --desk: #3a6ea5;
+  --desk-deep: #1f4c80;
+  --win: #ece9d8;
+  --panel: #e2dec8;
+  --panel-deep: #cbc6ad;
+  --field: #ffffff;
+  --edge-light: #ffffff;
+  --edge-mid: #b7b29a;
+  --edge-dark: #6e6a58;
+  --edge-ink: #3d3a2e;
+  --ink: #161616;
+  --muted: #6b6752;
+  --title-top: #3d8ef5;
+  --title: #0a4fc4;
+  --title-bottom: #0a45ab;
+  --sn-bot: #1f3fd0;
+  --sn-user: #d2232a;
+  --link: #0b3fb8;
+  --chat-size: 16px;
+  /* Your text color and its background -- retro.js sets these from the
+     toolbar's color pickers. */
+  --user-text: #161616;
+  --user-bg: #ffffff;
+  /* Screen names shown before each line of the conversation. */
+  --user-sn: "Ale";
+  --bot-sn: "ChudBot";
+
+  --raised: inset 1px 1px var(--edge-light), inset -1px -1px var(--edge-dark);
+  --sunken: inset 1px 1px var(--edge-dark), inset -1px -1px var(--edge-light);
+
+  /* Windows 95/98-style cursors at the classic size, as pixel art: the
+     arrow picked for the chat, the link hand, a text I-beam outlined so it
+     shows on any background color, and the hourglass while the bot is
+     working. The hotspot follows each url(). */
+  --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='21' viewBox='0 0 12 21' shape-rendering='crispEdges'%3E%3Cpath d='M1 2h1v1h-1zM1 3h2v1h-2zM1 4h3v1h-3zM1 5h4v1h-4zM1 6h5v1h-5zM1 7h6v1h-6zM1 8h7v1h-7zM1 9h8v1h-8zM1 10h9v1h-9zM1 11h6v1h-6zM1 12h3v1h-3zM5 12h2v1h-2zM1 13h2v1h-2zM5 13h2v1h-2zM1 14h1v1h-1zM6 14h2v1h-2zM6 15h2v1h-2zM7 16h2v1h-2zM7 17h2v1h-2zM8 18h2v1h-2zM8 19h2v1h-2z' fill='%23fff'/%3E%3Cpath d='M0 0h1v1h-1zM0 1h2v1h-2zM0 2h1v1h-1zM2 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM5 5h1v1h-1zM0 6h1v1h-1zM6 6h1v1h-1zM0 7h1v1h-1zM7 7h1v1h-1zM0 8h1v1h-1zM8 8h1v1h-1zM0 9h1v1h-1zM9 9h1v1h-1zM0 10h1v1h-1zM10 10h1v1h-1zM0 11h1v1h-1zM7 11h5v1h-5zM0 12h1v1h-1zM4 12h1v1h-1zM7 12h1v1h-1zM0 13h1v1h-1zM3 13h2v1h-2zM7 13h1v1h-1zM0 14h1v1h-1zM2 14h1v1h-1zM5 14h1v1h-1zM8 14h1v1h-1zM0 15h2v1h-2zM5 15h1v1h-1zM8 15h1v1h-1zM0 16h1v1h-1zM6 16h1v1h-1zM9 16h1v1h-1zM6 17h1v1h-1zM9 17h1v1h-1zM7 18h1v1h-1zM10 18h1v1h-1zM7 19h1v1h-1zM10 19h1v1h-1zM8 20h2v1h-2z' fill='%23000'/%3E%3C/svg%3E") 0 0, default;
+  --cursor-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='19' viewBox='0 0 16 19' shape-rendering='crispEdges'%3E%3Cpath d='M5 1h2v1h-2zM5 2h2v1h-2zM5 3h2v1h-2zM5 4h2v1h-2zM5 5h2v1h-2zM5 6h2v1h-2zM8 6h2v1h-2zM5 7h2v1h-2zM8 7h2v1h-2zM11 7h2v1h-2zM5 8h2v1h-2zM8 8h2v1h-2zM11 8h2v1h-2zM14 8h1v1h-1zM1 9h2v1h-2zM5 9h8v1h-8zM14 9h1v1h-1zM1 10h3v1h-3zM5 10h10v1h-10zM2 11h13v1h-13zM3 12h12v1h-12zM3 13h11v1h-11zM4 14h10v1h-10zM4 15h9v1h-9zM5 16h8v1h-8zM5 17h8v1h-8z' fill='%23fff'/%3E%3Cpath d='M5 0h2v1h-2zM4 1h1v1h-1zM7 1h1v1h-1zM4 2h1v1h-1zM7 2h1v1h-1zM4 3h1v1h-1zM7 3h1v1h-1zM4 4h1v1h-1zM7 4h1v1h-1zM4 5h1v1h-1zM7 5h3v1h-3zM4 6h1v1h-1zM7 6h1v1h-1zM10 6h3v1h-3zM4 7h1v1h-1zM7 7h1v1h-1zM10 7h1v1h-1zM13 7h2v1h-2zM1 8h2v1h-2zM4 8h1v1h-1zM7 8h1v1h-1zM10 8h1v1h-1zM13 8h1v1h-1zM15 8h1v1h-1zM0 9h1v1h-1zM3 9h2v1h-2zM13 9h1v1h-1zM15 9h1v1h-1zM0 10h1v1h-1zM4 10h1v1h-1zM15 10h1v1h-1zM1 11h1v1h-1zM15 11h1v1h-1zM2 12h1v1h-1zM15 12h1v1h-1zM2 13h1v1h-1zM14 13h1v1h-1zM3 14h1v1h-1zM14 14h1v1h-1zM3 15h1v1h-1zM13 15h1v1h-1zM4 16h1v1h-1zM13 16h1v1h-1zM4 17h1v1h-1zM13 17h1v1h-1zM4 18h10v1h-10z' fill='%23000'/%3E%3C/svg%3E") 5 0, pointer;
+  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='18' viewBox='0 0 9 18' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h9v1h-9zM0 1h1v1h-1zM4 1h1v1h-1zM8 1h1v1h-1zM0 2h4v1h-4zM5 2h4v1h-4zM3 3h1v1h-1zM5 3h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM3 8h1v1h-1zM5 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM3 12h1v1h-1zM5 12h1v1h-1zM3 13h1v1h-1zM5 13h1v1h-1zM3 14h1v1h-1zM5 14h1v1h-1zM0 15h4v1h-4zM5 15h4v1h-4zM0 16h1v1h-1zM4 16h1v1h-1zM8 16h1v1h-1zM0 17h9v1h-9z' fill='%23fff'/%3E%3Cpath d='M1 1h3v1h-3zM5 1h3v1h-3zM4 2h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM4 5h1v1h-1zM4 6h1v1h-1zM4 7h1v1h-1zM4 8h1v1h-1zM4 9h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM1 16h3v1h-3zM5 16h3v1h-3z' fill='%23000'/%3E%3C/svg%3E") 4 9, text;
+  --cursor-busy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='19' viewBox='0 0 13 19' shape-rendering='crispEdges'%3E%3Cpath d='M1 1h11v1h-11zM2 3h9v1h-9zM2 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM9 5h1v1h-1zM4 6h1v1h-1zM8 6h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM5 10h3v1h-3zM4 11h5v1h-5zM3 12h3v1h-3zM7 12h3v1h-3zM2 13h4v1h-4zM7 13h4v1h-4zM2 14h3v1h-3zM8 14h3v1h-3zM2 15h2v1h-2zM9 15h2v1h-2zM1 17h11v1h-11z' fill='%23fff'/%3E%3Cpath d='M0 0h13v1h-13zM0 1h1v1h-1zM12 1h1v1h-1zM0 2h13v1h-13zM1 3h1v1h-1zM11 3h1v1h-1zM1 4h1v1h-1zM3 4h7v1h-7zM11 4h1v1h-1zM2 5h1v1h-1zM4 5h5v1h-5zM10 5h1v1h-1zM3 6h1v1h-1zM5 6h3v1h-3zM9 6h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM5 8h1v1h-1zM7 8h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM4 10h1v1h-1zM8 10h1v1h-1zM3 11h1v1h-1zM9 11h1v1h-1zM2 12h1v1h-1zM6 12h1v1h-1zM10 12h1v1h-1zM1 13h1v1h-1zM6 13h1v1h-1zM11 13h1v1h-1zM1 14h1v1h-1zM5 14h3v1h-3zM11 14h1v1h-1zM1 15h1v1h-1zM4 15h5v1h-5zM11 15h1v1h-1zM0 16h13v1h-13zM0 17h1v1h-1zM12 17h1v1h-1zM0 18h13v1h-13z' fill='%23000'/%3E%3C/svg%3E") 6 9, wait;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: radial-gradient(ellipse at 30% 20%, #5089c4, var(--desk) 45%, var(--desk-deep));
+  color: var(--ink);
+  font-family: "ByteBounce", "Forced Square", Tahoma, Verdana, sans-serif;
+  font-size: 15px;
+  /* Both fonts come in one weight -- never thicken them with a synthesized
+     bold; bold text is told apart by color instead. */
+  font-synthesis: none;
+}
+
+button, textarea, select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+}
+
+/* The arrow everywhere, the hand on anything clickable, and the I-beam
+   over text you can type or select. */
+html {
+  cursor: var(--cursor-arrow);
+}
+
+a,
+label,
+button:not(:disabled),
+input[type="color"] {
+  cursor: var(--cursor-hand);
+}
+
+textarea,
+.msg .bubble {
+  cursor: var(--cursor-text);
+}
+
+.msg .bubble img.attachment {
+  cursor: var(--cursor-arrow);
+}
+
+/* The hourglass while a reply is on its way, like a busy Windows 98 app.
+   Buttons and the message box keep their own cursors -- you can still
+   type the next message. */
+html:has(.msg.typing),
+html:has(.msg.typing) .msg .bubble,
+html:has(.msg.typing) .msg .bubble img.attachment {
+  cursor: var(--cursor-busy);
+}
+
+/* ---- Window ---- */
+
+.window {
+  width: min(980px, 100%);
+  height: min(740px, calc(100dvh - 48px));
+  display: flex;
+  flex-direction: column;
+  background: var(--win);
+  border: 1px solid var(--edge-ink);
+  border-radius: 10px 10px 4px 4px;
+  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 8px;
+  background: linear-gradient(180deg, var(--title-top) 0%, var(--title) 45%, var(--title-bottom) 100%);
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.title-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Click the chat's name to rename it -- edited like a Windows rename box. */
+#chatTitle {
+  padding: 1px 3px;
+  cursor: var(--cursor-hand);
+}
+
+#chatTitle:hover {
+  text-decoration: underline dotted;
+}
+
+#chatTitle:focus-visible {
+  outline: 1px dotted #fff;
+}
+
+#chatTitle.editing {
+  outline: 1px solid var(--edge-ink);
+  background: var(--field);
+  color: var(--ink);
+  text-shadow: none;
+  text-decoration: none;
+  cursor: var(--cursor-text);
+}
+
+.sidebar-toggle {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: var(--cursor-hand);
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.panes {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.app.sidebar-collapsed .panes {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app.sidebar-collapsed .sidebar {
+  display: none;
+}
+
+.statusbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 6px 3px 10px;
+  border-top: 1px solid var(--edge-mid);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-text {
+  min-width: 0;
+}
+
+.theme-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  color: var(--edge-ink);
+}
+
+/* A Windows 98 drop-down: a sunken white field with a raised arrow button. */
+.theme-picker {
+  appearance: none;
+  height: 20px;
+  padding: 0 20px 0 4px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='16' viewBox='0 0 15 16' shape-rendering='crispEdges'%3E%3Crect width='15' height='16' fill='%23ece9d8'/%3E%3Cpath d='M0 0h15v1H0zM0 0h1v16H0z' fill='%23fff'/%3E%3Cpath d='M0 15h15v1H0zM14 0h1v16h-1z' fill='%236e6a58'/%3E%3Cpath d='M4 6h7v1H4zM5 7h5v1H5zM6 8h3v1H6zM7 9h1v1H7z' fill='%23000'/%3E%3C/svg%3E")
+      no-repeat right 1px center / 15px 16px,
+    var(--field);
+  border: 1px solid var(--edge-dark);
+  border-radius: 0;
+  box-shadow: var(--sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.theme-picker:disabled {
+  opacity: 0.55;
+  cursor: var(--cursor-arrow);
+}
+
+/* ---- Buttons: raised, and pressed in while held (or while current) ---- */
+
+.nav-item,
+.chip,
+.fmt-btn,
+.popover-btn,
+.attach-btn,
+.attachment-remove,
+.send {
+  background: var(--win);
+  border: 1px solid var(--edge-ink);
+  border-radius: 3px;
+  box-shadow: var(--raised);
+  cursor: var(--cursor-hand);
+}
+
+.nav-item:hover,
+.chip:hover,
+.fmt-btn:hover,
+.popover-btn:hover,
+.attach-btn:hover,
+.attachment-remove:hover,
+.send:hover:not(:disabled) {
+  background: #f7f4e6;
+}
+
+.nav-item:active,
+.nav-item.active,
+.chip:active,
+.fmt-btn:active,
+.fmt-btn[aria-expanded="true"],
+.popover-btn:active,
+.attach-btn:active,
+.attachment-remove:active,
+.send:active:not(:disabled) {
+  background: var(--panel);
+  box-shadow: var(--sunken);
+}
+
+:focus-visible {
+  outline: 1px dotted var(--ink);
+  outline-offset: -4px;
+}
+
+/* ---- Buddy list ---- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.buddy-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px;
+  overflow-y: auto;
+  background: var(--panel-deep);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--sunken);
+}
+
+.buddy,
+.recent-item {
+  background: var(--win);
+  border: 1px solid var(--edge-mid);
+  box-shadow: var(--raised);
+}
+
+.buddy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.buddy svg {
+  flex-shrink: 0;
+}
+
+.buddy-name {
+  font-weight: 600;
+}
+
+.buddy-status {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.section-label {
+  padding: 8px 6px 2px;
+  color: var(--edge-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recent-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: var(--cursor-hand);
+}
+
+.recent-item:hover {
+  background: #f7f4e6;
+}
+
+/* The open chat gets the envelope, like a buddy with an IM window up. */
+.recent-item.active {
+  background: #fffbe8;
+  font-weight: 600;
+}
+
+.recent-item.active::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 13px;
+  margin-right: 8px;
+  vertical-align: -1px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 13' shape-rendering='crispEdges'%3E%3Crect x='.5' y='.5' width='17' height='12' fill='%23f7a823' stroke='%233d3a2e'/%3E%3Cpath d='M1 1l8 6 8-6' fill='none' stroke='%233d3a2e'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* A chat's entry while it's being renamed from the right-click menu. */
+.recent-item.recent-rename {
+  background: var(--field);
+  border-color: var(--edge-dark);
+  box-shadow: var(--sunken);
+  font: inherit;
+  outline: none;
+  text-overflow: clip;
+  cursor: var(--cursor-text);
+}
+
+/* The right-click menu on Recents, as a Windows 98 menu: the arrow cursor,
+   and the navy highlight on the item under it. */
+.context-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 140px;
+  padding: 2px;
+  background: var(--win);
+  border: 1px solid var(--edge-ink);
+  box-shadow: var(--raised), 3px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.context-menu[hidden] {
+  display: none;
+}
+
+.context-menu button {
+  display: block;
+  width: 100%;
+  padding: 3px 20px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: var(--cursor-arrow);
+}
+
+.context-menu button:hover,
+.context-menu button:focus-visible {
+  outline: none;
+  background: #0a246a;
+  color: #fff;
+}
+
+.recent-empty {
+  padding: 8px 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  font-weight: 600;
+}
+
+/* ---- Conversation ---- */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.convo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.buddy-icon {
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--edge-ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.buddy-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sn-label {
+  max-width: 72px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: var(--field);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--sunken);
+  font-size: var(--chat-size);
+  /* ByteBounce comes out 1.5x its font-size (see @font-face). */
+  line-height: 1.9;
+}
+
+.chat::-webkit-scrollbar {
+  width: 16px;
+}
+
+.chat::-webkit-scrollbar-track {
+  background: #efecdd;
+  border-left: 1px solid var(--edge-mid);
+}
+
+.chat::-webkit-scrollbar-thumb {
+  background: var(--win);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--raised);
+}
+
+.msg {
+  margin-bottom: 6px;
+}
+
+.msg .avatar {
+  display: none;
+}
+
+.msg .bubble {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg.user .bubble::before,
+.msg.bot .bubble::before {
+  font-weight: 700;
+}
+
+.msg.user .bubble::before {
+  content: var(--user-sn) ": ";
+  color: var(--sn-user);
+}
+
+/* Your lines in your chosen colors. The negative margin keeps the text
+   lined up with the bot's while the background gets a little room. */
+.msg.user .bubble {
+  margin: 0 -4px;
+  padding: 1px 4px;
+  color: var(--user-text);
+  background: var(--user-bg);
+}
+
+/* The screen name stays red on white whatever colors you pick. */
+.msg.user .bubble::before {
+  margin-left: -4px;
+  padding: 1px 4px;
+  background: var(--field);
+}
+
+.msg.bot .bubble::before {
+  content: var(--bot-sn) ": ";
+  color: var(--sn-bot);
+}
+
+/* main.js puts an attached image before the text; here it reads as
+   "Ale: what's this?" with the picture on the line below. */
+.msg.user .bubble:has(> img.attachment) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* A zero-height line break between the text and the image. */
+.msg.user .bubble:has(> img.attachment)::after {
+  content: "";
+  flex-basis: 100%;
+}
+
+.msg.user .bubble img.attachment {
+  order: 1;
+}
+
+.msg.greeting::before {
+  content: var(--bot-sn) " has signed on.";
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.typing .bubble {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.msg.typing .bubble::before {
+  content: var(--bot-sn) " is typing";
+  margin-right: 3px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.typing span {
+  width: 4px;
+  height: 4px;
+  margin-top: 6px;
+  background: var(--muted);
+  animation: blink 1.2s steps(1) infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+.typing-status {
+  margin-left: 10px;
+  color: var(--muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+.bubble .source {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.bubble a {
+  color: var(--link);
+  word-break: break-all;
+}
+
+.bubble a.link-card {
+  display: flex;
+  gap: 10px;
+  max-width: 460px;
+  margin-top: 6px;
+  padding: 6px;
+  background: #f7f5ea;
+  border: 1px solid var(--edge-mid);
+  box-shadow: var(--raised);
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: normal;
+}
+
+.bubble a.link-card[hidden] {
+  display: none;
+}
+
+.bubble a.link-card:hover {
+  background: #fffdf2;
+}
+
+.link-card-thumb {
+  flex-shrink: 0;
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid var(--edge-dark);
+}
+
+.link-card-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.link-card-site {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-card-title,
+.link-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.link-card-title {
+  color: var(--link);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.link-card-desc {
+  color: #4a4739;
+}
+
+.bubble img.attachment {
+  display: block;
+  max-width: min(100%, 380px);
+  max-height: 300px;
+  margin-top: 6px;
+  border: 1px solid var(--edge-dark);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.bubble .reply-time {
+  margin-top: 2px;
+  color: #9a9680;
+  font-size: 11px;
+}
+
+/* ---- Toolbar: suggestions on the left, text size on the right ---- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 82px;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.suggestions[hidden] {
+  display: none;
+}
+
+.chip {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.format-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.format-group {
+  position: relative;
+}
+
+.fmt-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  color: var(--link);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Text color: an "A" underlined in the color. */
+.fmt-bar {
+  width: 14px;
+  height: 3px;
+  background: var(--user-text);
+  outline: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* Background color: an "A" on a swatch of it, in your text color. */
+.fmt-hl {
+  padding: 1px 4px;
+  background: var(--user-bg);
+  color: var(--user-text);
+  border: 1px solid var(--edge-dark);
+}
+
+.fmt-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--edge-mid);
+  box-shadow: 1px 0 var(--edge-light);
+}
+
+.fmt-btn.small-a {
+  font-size: 11px;
+}
+
+.fmt-btn.big-a {
+  font-size: 16px;
+}
+
+/* ---- Popovers: the icon and color pickers ---- */
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  z-index: 10;
+  width: max-content;
+  padding-bottom: 8px;
+  background: var(--win);
+  border: 1px solid var(--edge-ink);
+  box-shadow: var(--raised), 4px 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.popover[hidden] {
+  display: none;
+}
+
+.popover-title {
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: linear-gradient(180deg, var(--title-top) 0%, var(--title) 45%, var(--title-bottom) 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.popover-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.popover-note {
+  max-width: 190px;
+  margin: 8px 8px 0;
+  color: var(--sn-user);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.popover-note[hidden] {
+  display: none;
+}
+
+.icon-picker {
+  left: 0;
+}
+
+.icon-picker .popover-btn {
+  width: calc(100% - 16px);
+  margin: 8px 8px 0;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.icon-choice {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--edge-ink);
+  background: none;
+  cursor: var(--cursor-hand);
+}
+
+.icon-choice:hover {
+  outline: 1px solid var(--edge-dark);
+  outline-offset: 1px;
+}
+
+.icon-choice[aria-pressed="true"] {
+  outline: 2px solid var(--title);
+  outline-offset: 2px;
+}
+
+.icon-choice svg,
+.icon-choice img,
+.icon-btn svg,
+.icon-btn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.color-picker {
+  right: 0;
+}
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 24px);
+  gap: 5px;
+  padding: 0 8px;
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--edge-ink);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.45);
+  cursor: var(--cursor-hand);
+}
+
+.swatch[aria-pressed="true"] {
+  outline: 2px solid var(--title);
+  outline-offset: 1px;
+}
+
+.popover-row {
+  display: flex;
+  gap: 6px;
+  padding: 8px 8px 0;
+}
+
+.popover-row .popover-btn {
+  flex: 1;
+}
+
+.popover-row input[type="color"] {
+  width: 22px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--edge-ink);
+  background: none;
+  cursor: var(--cursor-hand);
+}
+
+/* ---- Composer ---- */
+
+.composer {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-areas:
+    ".      preview preview"
+    "avatar input   send";
+  column-gap: 10px;
+}
+
+.composer .avatar-col {
+  grid-area: avatar;
+  position: relative;
+}
+
+.icon-btn {
+  display: block;
+  padding: 0;
+  background: none;
+  overflow: hidden;
+  cursor: var(--cursor-hand);
+}
+
+.icon-btn:hover {
+  outline: 2px solid var(--title);
+  outline-offset: 1px;
+}
+
+.attachment-preview {
+  grid-area: preview;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.attachment-preview[hidden] {
+  display: none;
+}
+
+.attachment-preview img {
+  display: block;
+  max-width: 140px;
+  max-height: 72px;
+  border: 1px solid var(--edge-dark);
+}
+
+.attachment-remove {
+  width: 20px;
+  height: 20px;
+  margin: -6px 0 0 -10px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.attachment-error {
+  color: var(--sn-user);
+  font-size: 13px;
+}
+
+.input-wrap {
+  grid-area: input;
+  position: relative;
+  display: flex;
+}
+
+textarea {
+  flex: 1;
+  min-height: 84px;
+  max-height: 140px;
+  padding: 8px 10px 8px 40px;
+  resize: none;
+  background: var(--user-bg);
+  color: var(--user-text);
+  border: 1px solid var(--edge-dark);
+  border-radius: 0;
+  box-shadow: var(--sunken);
+  outline: none;
+  font-size: var(--chat-size);
+  /* ByteBounce comes out 1.5x its font-size (see @font-face). */
+  line-height: 1.9;
+}
+
+textarea:focus {
+  border-color: var(--title);
+}
+
+textarea::placeholder {
+  color: #9a9680;
+}
+
+.attach-btn {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+
+.send {
+  grid-area: send;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 84px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.send:disabled {
+  opacity: 0.55;
+  cursor: var(--cursor-arrow);
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* ---- Small screens: just the conversation, full-bleed ---- */
+
+@media (max-width: 680px) {
+  body {
+    padding: 0;
+  }
+
+  .window {
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sidebar,
+  .sidebar-toggle,
+  .avatar-col {
+    display: none;
+  }
+
+  .panes,
+  .app.sidebar-collapsed .panes {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px;
+  }
+
+  .convo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbar {
+    padding-left: 0;
+  }
+
+  .composer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "preview preview"
+      "input   send";
+  }
+
+  .send {
+    width: 68px;
+  }
+}
