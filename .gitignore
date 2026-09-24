@@ -1,0 +1,9 @@
+# Private settings (API keys) -- .env.example is the shareable version.
+.env
+
+# Written while the bridge runs.
+logs/
+charts/
+
+__pycache__/
+node_modules/

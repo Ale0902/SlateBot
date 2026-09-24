@@ -1,7 +1,7 @@
 // ---- Agent loop and guardrails ----
-// Ported from DJ Shinx's llmask.py. The tools come from the same MCP server
-// (mcp_web_server.py), reached through server/bridge.py, since a browser
-// can't talk to a stdio MCP server directly.
+// Ported from DJ Shinx's llmask.py. The tools come from this project's MCP
+// server (server/mcp_server.py), reached through server/bridge.py, since a
+// browser can't talk to a stdio MCP server directly.
 
 type LlmRole = "system" | "user" | "assistant";
 
@@ -250,7 +250,30 @@ function rememberFact(fact: string, userMessage: string): string {
 
 // ---- Requests ----
 
+class RequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
+
+// One retry, after a short pause, for a blip: the connection dropping, or
+// the bridge briefly unable to reach the model server (502). Not for a
+// timeout (the wait would double), a busy or rate-limited reply (retrying
+// adds to the load), or a request the server refused.
+const RETRY_DELAY_MS = 1500;
+
 async function requestJson<T>(path: string, body: unknown | undefined, timeoutMs: number): Promise<T> {
+  try {
+    return await requestOnce<T>(path, body, timeoutMs);
+  } catch (err) {
+    const blip = err instanceof TypeError || (err instanceof RequestError && err.status === 502);
+    if (!blip) throw err;
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    return requestOnce<T>(path, body, timeoutMs);
+  }
+}
+
+async function requestOnce<T>(path: string, body: unknown | undefined, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -262,7 +285,7 @@ async function requestJson<T>(path: string, body: unknown | undefined, timeoutMs
     });
     const data = (await response.json().catch(() => ({}))) as { error?: string };
     if (!response.ok) {
-      throw new Error(data.error ?? `${response.status} ${response.statusText}`);
+      throw new RequestError(data.error ?? `${response.status} ${response.statusText}`, response.status);
     }
     return data as T;
   } catch (err) {

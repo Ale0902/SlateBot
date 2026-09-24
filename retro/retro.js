@@ -78,149 +78,166 @@
     return title;
   }
 
-  // ---- Buddy icons: 16x16 pixel art, one path per color ----
-  const ICONS = [
-    {
-      id: "shades",
-      label: "Smiley with sunglasses",
-      bg: "#6b2fa0",
-      paths: [
-        ["#ffd23f", "M5 2h6v1H5zM4 3h8v1H4zM3 4h10v7H3zM4 11h8v1H4zM5 12h6v1H5z"],
-        ["#1a1a1a", "M4 5h3v2H4zm5 0h3v2H9zM7 5h2v1H7zM5 9h1v1H5zm5 0h1v1h-1zM6 10h4v1H6z"],
-      ],
-    },
-    {
-      id: "cat",
-      label: "Cat",
-      bg: "#8fd0ff",
-      paths: [
-        ["#f5a142", "M3 2h2v1H3zm8 0h2v1h-2zM3 3h3v1H3zm7 0h3v1h-3zM3 4h10v8H3zM4 12h8v1H4z"],
-        ["#1a1a1a", "M5 6h2v2H5zm4 0h2v2H9zM6 10h1v1H6zm3 0h1v1H9zM1 9h2v1H1zm12 0h2v1h-2z"],
-        ["#f27a9b", "M7 9h2v1H7z"],
-      ],
-    },
-    {
-      id: "alien",
-      label: "Alien",
-      bg: "#0d0d2b",
-      paths: [
-        ["#7ee36b", "M5 2h6v1H5zM4 3h8v1H4zM3 4h10v4H3zM4 8h8v2H4zm1 2h6v2H5zm1 2h4v1H6z"],
-        ["#0d0d2b", "M4 5h3v2H4zm5 0h3v2H9zM7 10h2v1H7z"],
-      ],
-    },
-    {
-      id: "ghost",
-      label: "Ghost",
-      bg: "#2b3a67",
-      paths: [
-        ["#f4f4f4", "M5 3h6v1H5zM4 4h8v1H4zM3 5h10v7H3zm0 7h2v1H3zm4 0h2v1H7zm4 0h2v1h-2z"],
-        ["#2b3a67", "M5 6h2v3H5zm4 0h2v3H9z"],
-      ],
-    },
-    {
-      id: "soccer",
-      label: "Soccer ball",
-      bg: "#2f8f3f",
-      paths: [
-        ["#ffffff", "M5 2h6v1H5zM4 3h8v1H4zM3 4h10v7H3zM4 11h8v1H4zM5 12h6v1H5z"],
-        ["#1a1a1a", "M7 2h2v1H7zM7 6h2v1H7zM6 7h4v2H6zM3 7h1v2H3zm9 0h1v2h-1zM5 11h2v1H5zm4 0h2v1H9z"],
-      ],
-    },
-    {
-      id: "note",
-      label: "Music note",
-      bg: "#ffcf3f",
-      paths: [["#1a1a1a", "M9 2h1v9H9zm1 1h2v1h-2zm1 1h2v1h-2zm1 1h1v2h-1zM5 10h5v3H5z"]],
-    },
-    {
-      id: "heart",
-      label: "Heart",
-      bg: "#1a1a1a",
-      paths: [
-        ["#e8323c", "M3 4h4v1H3zm6 0h4v1H9zM2 5h12v3H2zm1 3h10v1H3zm1 1h8v1H4zm1 1h6v1H5zm1 1h4v1H6zm1 1h2v1H7z"],
-        ["#ffffff", "M4 5h1v1H4z"],
-      ],
-    },
-    {
-      id: "star",
-      label: "Star",
-      bg: "#1f3fd0",
-      paths: [
-        ["#ffd23f", "M7 1h2v3H7zM6 4h4v1H6zM1 5h14v2H1zm2 2h10v1H3zm1 1h8v2H4zm0 2h3v1H4zm5 0h3v1H9zm-6 1h3v1H3zm7 0h3v1h-3zm-7 1h2v1H3zm8 0h2v1h-2z"],
-      ],
-    },
+  // ---- Buddy icons ----
+  // Pixel art by Kenney, CC0 -- see icons/CREDITS.txt. Yours comes from his
+  // Tiny Dungeon characters (or an upload); Slate Bot's from the robots,
+  // aliens and the like in icons/bot/. Each sits on a colored tile like an
+  // old buddy icon.
+  const USER_ICONS = [
+    { id: "wizard", label: "Wizard", bg: "#2b3a67" },
+    { id: "knight", label: "Knight", bg: "#4a6fa5" },
+    { id: "viking", label: "Viking", bg: "#8a3b2b" },
+    { id: "princess", label: "Princess", bg: "#f27a9b" },
+    { id: "ranger", label: "Ranger", bg: "#2f6b3a" },
+    { id: "barbarian", label: "Barbarian", bg: "#c9892b" },
+    { id: "dwarf", label: "Dwarf", bg: "#5a4a8a" },
+    { id: "elder", label: "Elder", bg: "#008080" },
+    { id: "adventurer", label: "Adventurer", bg: "#1f3fd0" },
+    { id: "cyclops", label: "Cyclops", bg: "#6b2fa0" },
+    { id: "slime", label: "Slime", bg: "#13295b" },
+    { id: "ghost", label: "Ghost", bg: "#2b2b2b" },
+    { id: "crab", label: "Crab", bg: "#3a8fb7" },
+    { id: "bat", label: "Bat", bg: "#4b2e5e" },
+    { id: "spider", label: "Spider", bg: "#7a7a52" },
+    { id: "mimic", label: "Mimic", bg: "#2a5a4a" },
   ];
 
-  const ICON_KEY = "celta-chat.retroIcon";
+  const BOT_ICONS = [
+    { id: "robot", label: "Robot", bg: "#13295b" },
+    { id: "robot-mini", label: "Little robot", bg: "#2b3a67" },
+    { id: "drone", label: "Drone", bg: "#4a6fa5" },
+    { id: "spike-bot", label: "Spike bot", bg: "#2b2b2b" },
+    { id: "alien-green", label: "Green alien", bg: "#1f3fd0" },
+    { id: "alien-blue", label: "Blue alien", bg: "#6b2fa0" },
+    { id: "alien-pink", label: "Pink alien", bg: "#008080" },
+    { id: "alien-yellow", label: "Yellow alien", bg: "#8a3b2b" },
+    { id: "astronaut", label: "Astronaut", bg: "#13295b" },
+    { id: "block", label: "Block buddy", bg: "#3a8fb7" },
+    { id: "invader-yellow", label: "Yellow invader", bg: "#2b2b2b" },
+    { id: "invader-blue", label: "Blue invader", bg: "#13295b" },
+    { id: "invader-green", label: "Green invader", bg: "#2b3a67" },
+    { id: "computer", label: "Computer", bg: "#2f6b3a" },
+    { id: "wizard", label: "Wizard", bg: "#2b3a67" },
+  ];
+
+  // The picture area of a buddy icon and of a picker tile (see retro.css).
+  const BUDDY_FRAME = 64;
+  const PICKER_FRAME = 48;
+
+  // A pixel drawing on its colored tile, drawn at the largest whole multiple
+  // of its own size that fits -- so every pixel stays crisp -- and centered.
+  function pixelTile(src, bg, frame) {
+    const tile = document.createElement("span");
+    tile.className = "icon-tile";
+    tile.style.background = bg;
+    const img = document.createElement("img");
+    img.alt = "";
+    img.style.width = img.style.height = "0"; // sized once its pixels are known
+    img.addEventListener("load", () => {
+      const scale = Math.max(1, Math.floor(frame / Math.max(img.naturalWidth, img.naturalHeight)));
+      img.style.width = `${img.naturalWidth * scale}px`;
+      img.style.height = `${img.naturalHeight * scale}px`;
+    });
+    img.src = src;
+    tile.appendChild(img);
+    return tile;
+  }
+
+  // One buddy icon -- a button showing the current pick -- and the picker it
+  // opens. `custom` (yours only) returns an uploaded icon, if there is one.
+  function buddyIcon({ button, panel, grid, icons, folder, key, fallback, custom = () => null, onOpen }) {
+    let choice = load(key, fallback);
+
+    function art(id, frame) {
+      if (id === "custom" && custom()) {
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = custom();
+        return img;
+      }
+      const icon = icons.find((i) => i.id === id) ?? icons[0];
+      return pixelTile(`icons/${folder}${icon.id}.png`, icon.bg, frame);
+    }
+
+    function render() {
+      // A pick that no longer exists (like an earlier icon set's) goes back
+      // to the default.
+      if (choice === "custom" ? !custom() : !icons.some((i) => i.id === choice)) {
+        choice = fallback;
+        save(key, null);
+      }
+      button.replaceChildren(art(choice, BUDDY_FRAME));
+
+      const choices = icons.map(({ id, label }) => ({ id, label }));
+      if (custom()) choices.push({ id: "custom", label: "Your uploaded icon" });
+      grid.replaceChildren(
+        ...choices.map(({ id, label }) => {
+          const option = document.createElement("button");
+          option.type = "button";
+          option.className = "icon-choice";
+          option.title = label;
+          option.setAttribute("aria-label", label);
+          option.setAttribute("aria-pressed", String(id === choice));
+          option.appendChild(art(id, PICKER_FRAME));
+          option.addEventListener("click", () => {
+            pick(id);
+            closePopover(false);
+            input.focus();
+          });
+          return option;
+        })
+      );
+    }
+
+    function pick(id) {
+      choice = id;
+      save(key, id === fallback ? null : id);
+      render();
+    }
+
+    button.addEventListener("click", () => {
+      onOpen?.();
+      togglePopover(button, panel);
+    });
+    render();
+    return { pick };
+  }
+
+  // Yours: one of the characters, or an upload.
   const CUSTOM_ICON_KEY = "celta-chat.retroCustomIcon";
   // Uploads are center-cropped to a square this size, about 10KB saved.
   const CUSTOM_ICON_SIZE = 64;
-
-  const iconBtn = $("myIconBtn");
-  const iconPicker = $("iconPicker");
-  const iconGrid = $("iconGrid");
   const iconFile = $("iconFile");
   const iconNote = $("iconNote");
-  let iconChoice = load(ICON_KEY, "shades");
   let customIcon = load(CUSTOM_ICON_KEY, null);
 
-  function iconArt(id) {
-    if (id === "custom" && customIcon) {
-      const img = document.createElement("img");
-      img.src = customIcon;
-      img.alt = "";
-      return img;
-    }
-    const icon = ICONS.find((i) => i.id === id) ?? ICONS[0];
-    const ns = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("viewBox", "0 0 16 16");
-    svg.setAttribute("shape-rendering", "crispEdges");
-    svg.setAttribute("aria-hidden", "true");
-    const bg = document.createElementNS(ns, "rect");
-    bg.setAttribute("width", "16");
-    bg.setAttribute("height", "16");
-    bg.setAttribute("fill", icon.bg);
-    svg.appendChild(bg);
-    for (const [fill, d] of icon.paths) {
-      const path = document.createElementNS(ns, "path");
-      path.setAttribute("d", d);
-      path.setAttribute("fill", fill);
-      svg.appendChild(path);
-    }
-    return svg;
+  function showIconNote(text) {
+    iconNote.textContent = text;
+    iconNote.hidden = !text;
   }
 
-  function renderIcons() {
-    if (iconChoice === "custom" ? !customIcon : !ICONS.some((i) => i.id === iconChoice)) iconChoice = "shades";
-    iconBtn.replaceChildren(iconArt(iconChoice));
+  const myIcon = buddyIcon({
+    button: $("myIconBtn"),
+    panel: $("iconPicker"),
+    grid: $("iconGrid"),
+    icons: USER_ICONS,
+    folder: "",
+    key: "celta-chat.retroIcon",
+    fallback: "wizard",
+    custom: () => customIcon,
+    onOpen: () => showIconNote(""),
+  });
 
-    const choices = ICONS.map((i) => ({ id: i.id, label: i.label }));
-    if (customIcon) choices.push({ id: "custom", label: "Your uploaded icon" });
-    iconGrid.replaceChildren(
-      ...choices.map(({ id, label }) => {
-        const choice = document.createElement("button");
-        choice.type = "button";
-        choice.className = "icon-choice";
-        choice.title = label;
-        choice.setAttribute("aria-label", label);
-        choice.setAttribute("aria-pressed", String(id === iconChoice));
-        choice.appendChild(iconArt(id));
-        choice.addEventListener("click", () => {
-          pickIcon(id);
-          closePopover(false);
-          input.focus();
-        });
-        return choice;
-      })
-    );
-  }
-
-  function pickIcon(id) {
-    iconChoice = id;
-    save(ICON_KEY, id === "shades" ? null : id);
-    renderIcons();
-  }
+  // Slate Bot's.
+  buddyIcon({
+    button: $("botIconBtn"),
+    panel: $("botIconPicker"),
+    grid: $("botIconGrid"),
+    icons: BOT_ICONS,
+    folder: "bot/",
+    key: "celta-chat.retroBotIcon",
+    fallback: "robot",
+  });
 
   async function readIcon(file) {
     const url = URL.createObjectURL(file);
@@ -250,33 +267,26 @@
     }
   }
 
-  function showIconNote(text) {
-    iconNote.textContent = text;
-    iconNote.hidden = !text;
-  }
-
-  iconBtn.addEventListener("click", () => {
-    showIconNote("");
-    togglePopover(iconBtn, iconPicker);
-  });
-
   $("iconUploadBtn").addEventListener("click", () => iconFile.click());
 
   iconFile.addEventListener("change", async () => {
     const file = iconFile.files?.[0];
     iconFile.value = ""; // so picking the same file again still fires "change"
     if (!file) return;
+    // Same limit as the chat's own uploads (MAX_UPLOAD_MB in src/main.ts).
+    if (file.size > 25 * 1024 * 1024) {
+      showIconNote("That image is too big -- the limit is 25 MB.");
+      return;
+    }
     try {
       const dataUrl = await readIcon(file);
       customIcon = dataUrl;
-      pickIcon("custom");
+      myIcon.pick("custom");
       showIconNote(save(CUSTOM_ICON_KEY, dataUrl) ? "" : "Set for now, but it couldn't be saved for next time.");
     } catch {
       showIconNote("Couldn't open that image -- try a JPEG, PNG, WebP or GIF.");
     }
   });
-
-  renderIcons();
 
   // ---- Your text color and background ----
   // Applied to the message box and to every one of your lines in the chat.

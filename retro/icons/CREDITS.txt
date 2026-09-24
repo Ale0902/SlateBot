@@ -1,0 +1,33 @@
+Buddy icons: pixel art by Kenney (www.kenney.nl), from four of his packs.
+
+Your icons (this folder)
+- wizard, knight, viking, princess, ranger, barbarian, dwarf, elder,
+  adventurer, cyclops, slime, ghost, crab, bat, spider, mimic: tiles from
+  "Tiny Dungeon" (1.0), kenney.nl/assets/tiny-dungeon -- Tiles/tile_0084,
+  0096, 0087, 0099, 0112, 0088, 0086, 0100, 0085, 0109, 0108, 0121, 0110,
+  0120, 0122 and 0092, copied unchanged and renamed.
+
+Slate Bot's icons (bot/)
+- robot, robot-mini, drone, spike-bot, alien-green, alien-blue, alien-pink,
+  alien-yellow, astronaut, block: "Pixel Platformer" (1.0),
+  kenney.nl/assets/pixel-platformer -- Tiles/Characters/tile_0021, 0018,
+  0024, 0015, 0000, 0002, 0004, 0006, 0009 and 0011.
+- invader-yellow, invader-blue, invader-green, computer: "1-Bit Pack" (1.2),
+  kenney.nl/assets/1-bit-pack -- from Tilesheet/colored-transparent_packed.png
+  at column,row (from 0) 18,8 / 18,7 / 18,9 / 9,10.
+- wizard: "Tiny Dungeon", Tiles/tile_0084.
+
+The bot icons are trimmed of their empty border and centered on a square, so
+the page can draw each at the largest whole-number scale that fits.
+
+Every pack's own license file reads:
+
+  License: (Creative Commons Zero, CC0)
+  http://creativecommons.org/publicdomain/zero/1.0/
+
+  This content is free to use in personal, educational and commercial
+  projects. Support us by crediting Kenney or www.kenney.nl (this is not
+  mandatory)
+
+So they need no permission or credit -- this note is just so it's clear where
+they came from, and credits Kenney as he asks.

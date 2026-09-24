@@ -21,8 +21,8 @@
 <div class="app shell">
   <aside class="sidebar" id="sidebar">
     <div class="brand-row">
-      <div class="brand-mark">C</div>
-      <span>Chud Bot</span>
+      <div class="brand-mark">S</div>
+      <span>Slate Bot</span>
     </div>
 
     <nav class="nav" aria-label="Sidebar navigation">
@@ -34,9 +34,16 @@
       <div class="recent-list" id="recents"></div>
     </div>
 
+    <div class="model-row">
+      <span class="model-info" id="modelInfo"></span>
+      <button type="button" class="about-btn" id="aboutBtn">About</button>
+    </div>
+
     <div class="profile-row">
-      <div class="avatar-mini">A</div>
+      <!-- Shows your picture once you've uploaded one (see main.ts). -->
+      <button type="button" class="avatar-mini avatar-btn" id="profilePic" aria-haspopup="menu" aria-expanded="false" aria-label="Profile picture" title="Change profile picture">A</button>
       <span>Ale</span>
+      <input type="file" id="profileFile" accept="image/*" hidden>
     </div>
   </aside>
 
@@ -79,7 +86,7 @@
       <button class="send" id="sendBtn" type="submit">Send</button>
     </form>
 
-    <p class="disclaimer">Chud Bot is AI and can make mistakes. Check important info.</p>
+    <p class="disclaimer">Slate Bot is AI and can make mistakes. Check important info.</p>
   </div>
 </div>
 

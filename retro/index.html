@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chud Bot - Instant Message</title>
+<title>Slate Bot - Instant Message</title>
 <link rel="stylesheet" href="retro.css">
 </head>
 <body>
@@ -23,12 +23,16 @@
         <div class="buddy">
           <svg viewBox="0 0 18 13" width="22" height="16" shape-rendering="crispEdges" aria-hidden="true"><rect x=".5" y=".5" width="17" height="12" fill="#f7a823" stroke="#3d3a2e"/><path d="M1 1l8 6 8-6" fill="none" stroke="#3d3a2e"/></svg>
           <div>
-            <div class="buddy-name">ChudBot</div>
+            <div class="buddy-name">Slate Bot</div>
             <div class="buddy-status">online</div>
           </div>
         </div>
         <div class="section-label">Recent IMs</div>
         <div class="recent-list" id="recents"></div>
+      </div>
+      <div class="model-row">
+        <span class="model-info" id="modelInfo"></span>
+        <button type="button" class="about-btn" id="aboutBtn">About</button>
       </div>
       <button type="button" class="nav-item" id="newChatBtn">
         <svg viewBox="0 0 14 14" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><rect x=".5" y=".5" width="13" height="13" fill="#ffe45c" stroke="#3d3a2e"/><path d="M3 4h8v1H3zm0 3h8v1H3zm0 3h5v1H3z" fill="#3d3a2e"/></svg>
@@ -39,20 +43,13 @@
     <div class="workspace" id="workspace">
       <div class="convo">
         <div class="avatar-col">
-          <div class="buddy-icon">
-            <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-              <rect width="16" height="16" fill="#13295b"/>
-              <rect x="7" y="1" width="2" height="2" fill="#ff5a5a"/>
-              <rect x="7" y="3" width="2" height="1" fill="#cfe9ff"/>
-              <rect x="2" y="6" width="12" height="3" fill="#5aa6e0"/>
-              <rect x="3" y="4" width="10" height="8" fill="#8fd0ff"/>
-              <rect x="5" y="6" width="2" height="2" fill="#13295b"/>
-              <rect x="9" y="6" width="2" height="2" fill="#13295b"/>
-              <rect x="5" y="9" width="6" height="1" fill="#13295b"/>
-              <rect x="5" y="12" width="6" height="3" fill="#5aa6e0"/>
-            </svg>
+          <!-- Filled in by retro.js with whichever icon was picked for it. -->
+          <button type="button" class="buddy-icon icon-btn" id="botIconBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="botIconPicker" aria-label="Change Slate Bot's icon" title="Change Slate Bot's icon"></button>
+          <span class="sn-label">Slate Bot</span>
+          <div class="popover icon-picker bot-icon-picker" id="botIconPicker" role="dialog" aria-label="Choose Slate Bot's icon" hidden>
+            <div class="popover-title">Choose Slate Bot's Icon</div>
+            <div class="icon-grid" id="botIconGrid"></div>
           </div>
-          <span class="sn-label">ChudBot</span>
         </div>
         <main id="chat" class="chat" aria-live="polite"></main>
       </div>
@@ -116,7 +113,7 @@
   </div>
 
   <div class="statusbar">
-    <span class="status-text">Chud Bot is AI and can make mistakes. Check important info.</span>
+    <span class="status-text">Slate Bot is AI and can make mistakes. Check important info.</span>
     <label class="theme-field">
       Theme:
       <select id="themePicker" class="theme-picker"></select>

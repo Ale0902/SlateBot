@@ -40,16 +40,24 @@ interface Config {
   numCtx: number;
   numGpu: number | null;
   botName: string;
+  // The model as users see it (bottom left and in About).
+  modelLabel: string;
 }
 
 // ---- Config ----
 // The page talks to server/bridge.py (npm start), which runs the MCP tool
-// server and forwards chat requests to Ollama -- whether the page itself is
-// served by the bridge or by something else like Live Server. The Ollama URL
-// lives there (OLLAMA_URL, default http://10.7.163.103:11434).
+// server and forwards chat requests to Ollama. The Ollama URL lives there
+// (OLLAMA_URL, default http://10.7.163.103:11434).
+
+// When the bridge serves the page -- at localhost:8765, or a public domain
+// in front of it -- it's the page's own address. A copy opened some other
+// way (Live Server on 5500+, or as a file) uses the local bridge.
+const LOCAL_BRIDGE = "http://127.0.0.1:8765";
+const SERVED_BY_BRIDGE = /^https?:$/.test(location.protocol) && !/^55\d\d$/.test(location.port);
+
 const CONFIG: Config = {
   useMock: false,
-  bridgeUrl: "http://127.0.0.1:8765",
+  bridgeUrl: SERVED_BY_BRIDGE ? location.origin : LOCAL_BRIDGE,
   // gemma3:12b plus "PARAMETER num_gpu 49", created on the VM. Left to itself
   // Ollama only uses the GTX 1660 and runs half the model on the CPU; all 49
   // layers fit across both cards and write replies ~3x faster. The Discord
@@ -59,7 +67,8 @@ const CONFIG: Config = {
   // Per-request layer override -- null leaves it to the model's own setting.
   // Sending a value that differs from what's loaded makes Ollama reload (~7s).
   numGpu: null,
-  botName: "Chud Bot",
+  botName: "Slate Bot",
+  modelLabel: "Gemma 3 12B",
 };
 
 // Earlier question/answer pairs sent back to the model, oldest dropped first.
@@ -76,6 +85,18 @@ const MODEL_IMAGE_SIZE = 896;
 // Sharp enough in the chat, small enough that a few saved images don't eat
 // the ~5MB localStorage has for every chat.
 const THUMBNAIL_SIZE = 480;
+// Every upload is shrunk here before it's sent or saved, but a huge file can
+// still freeze the tab while it decodes, so there's a cap on what's opened.
+const MAX_UPLOAD_MB = 25;
+
+// Why a picked file can't be used as an image, or null if it can.
+function uploadProblem(file: File): string | null {
+  if (!file.type.startsWith("image/")) return "Only images can be uploaded.";
+  if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+    return `That image is too big -- the limit is ${MAX_UPLOAD_MB} MB.`;
+  }
+  return null;
+}
 
 function $<T extends HTMLElement>(id: string): T {
   const el = document.getElementById(id);
@@ -572,26 +593,191 @@ function setAttachment(next: Attachment | null): void {
   attachmentPreview.append(thumb, remove);
 }
 
-function showAttachmentError(message: string): void {
+// A line of text where the attached image would go: a problem, or "busy"
+// while a picked image is still being shrunk.
+function showAttachmentNote(message: string, kind: "error" | "busy" = "error"): void {
   setAttachment(null);
   const note = document.createElement("span");
-  note.className = "attachment-error";
+  note.className = `attachment-${kind}`;
   note.textContent = message;
   attachmentPreview.appendChild(note);
   attachmentPreview.hidden = false;
 }
 
+// Picking a second image while the first is still being prepared: only the
+// latest one lands.
+let attachSeq = 0;
+
 async function attachFile(file: File): Promise<void> {
-  if (!file.type.startsWith("image/")) {
-    showAttachmentError("Only images can be attached.");
-    return;
-  }
+  const problem = uploadProblem(file);
+  if (problem) return showAttachmentNote(problem);
+  const seq = ++attachSeq;
+  showAttachmentNote("Preparing image…", "busy");
   try {
-    setAttachment(await readAttachment(file));
+    const prepared = await readAttachment(file);
+    if (seq === attachSeq) setAttachment(prepared);
   } catch {
-    showAttachmentError("Couldn't open that image -- try a JPEG, PNG, WebP or GIF.");
+    if (seq === attachSeq) showAttachmentNote("Couldn't open that image -- try a JPEG, PNG, WebP or GIF.");
   }
   input.focus();
+}
+
+// ---- Profile picture ----
+// Only for themes with a #profilePic button (the modern one -- the retro
+// theme has its own buddy icons). Clicking it opens a small menu to upload
+// or remove a picture, which is cropped to a square and kept in this
+// browser only.
+
+const PROFILE_PIC_KEY = "celta-chat.profilePicture";
+// Crisp up to 3x the 32px it's shown at, and only ~20KB saved.
+const PROFILE_PIC_SIZE = 96;
+
+const profilePic = document.getElementById("profilePic") as HTMLButtonElement | null;
+const profileFile = document.getElementById("profileFile") as HTMLInputElement | null;
+
+async function readProfilePicture(file: File): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    // Center-crop to a square.
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = PROFILE_PIC_SIZE;
+    canvas
+      .getContext("2d")!
+      .drawImage(
+        img,
+        (img.naturalWidth - side) / 2,
+        (img.naturalHeight - side) / 2,
+        side,
+        side,
+        0,
+        0,
+        PROFILE_PIC_SIZE,
+        PROFILE_PIC_SIZE
+      );
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+if (profilePic && profileFile) {
+  const initial = profilePic.textContent ?? "";
+
+  const menu = document.createElement("div");
+  menu.className = "context-menu profile-menu";
+  menu.setAttribute("role", "menu");
+  menu.hidden = true;
+  const uploadItem = document.createElement("button");
+  uploadItem.type = "button";
+  uploadItem.setAttribute("role", "menuitem");
+  uploadItem.textContent = "Upload picture…";
+  const removeItem = document.createElement("button");
+  removeItem.type = "button";
+  removeItem.setAttribute("role", "menuitem");
+  removeItem.textContent = "Remove picture";
+  const note = document.createElement("p");
+  note.className = "menu-note";
+  note.hidden = true;
+  menu.append(uploadItem, removeItem, note);
+  document.body.appendChild(menu);
+
+  const loadPicture = (): string | null => {
+    try {
+      return localStorage.getItem(PROFILE_PIC_KEY);
+    } catch {
+      return null;
+    }
+  };
+
+  const showPicture = (dataUrl: string | null) => {
+    if (!dataUrl) {
+      profilePic.replaceChildren(initial);
+      profilePic.classList.remove("has-picture");
+      return;
+    }
+    const img = document.createElement("img");
+    img.src = dataUrl;
+    img.alt = "";
+    profilePic.replaceChildren(img);
+    profilePic.classList.add("has-picture");
+  };
+
+  const openMenu = (message = "") => {
+    note.textContent = message;
+    note.hidden = !message;
+    removeItem.hidden = !profilePic.classList.contains("has-picture");
+    menu.hidden = false;
+    profilePic.setAttribute("aria-expanded", "true");
+    // Opens upward: the button sits at the very bottom of the sidebar.
+    const button = profilePic.getBoundingClientRect();
+    menu.style.left = `${button.left}px`;
+    menu.style.top = `${Math.max(4, button.top - menu.offsetHeight - 6)}px`;
+    uploadItem.focus();
+  };
+
+  const closeMenu = () => {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    profilePic.setAttribute("aria-expanded", "false");
+  };
+
+  profilePic.addEventListener("click", () => (menu.hidden ? openMenu() : closeMenu()));
+  uploadItem.addEventListener("click", () => {
+    closeMenu();
+    profileFile.click();
+  });
+  removeItem.addEventListener("click", () => {
+    closeMenu();
+    try {
+      localStorage.removeItem(PROFILE_PIC_KEY);
+    } catch {
+      // Storage blocked -- nothing was saved to remove.
+    }
+    showPicture(null);
+    profilePic.focus();
+  });
+
+  profileFile.addEventListener("change", async () => {
+    const file = profileFile.files?.[0];
+    profileFile.value = ""; // so picking the same file again still fires "change"
+    if (!file) return;
+    const problem = uploadProblem(file);
+    if (problem) return openMenu(problem);
+    let dataUrl: string;
+    try {
+      dataUrl = await readProfilePicture(file);
+    } catch {
+      return openMenu("Couldn't open that image -- try a JPEG, PNG, WebP or GIF.");
+    }
+    showPicture(dataUrl);
+    try {
+      localStorage.setItem(PROFILE_PIC_KEY, dataUrl);
+    } catch {
+      openMenu("Set for now, but your browser wouldn't save it for next time.");
+    }
+  });
+
+  document.addEventListener("pointerdown", (e) => {
+    const target = e.target as Node;
+    if (!menu.contains(target) && !profilePic.contains(target)) closeMenu();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !menu.hidden) {
+      closeMenu();
+      profilePic.focus();
+    }
+  });
+  menu.addEventListener("focusout", (e) => {
+    const next = e.relatedTarget as Node | null;
+    if (!menu.contains(next) && next !== profilePic) closeMenu();
+  });
+  addEventListener("resize", closeMenu);
+
+  showPicture(loadPicture());
 }
 
 function openChat(target: SavedChat): void {
@@ -658,6 +844,11 @@ function describeError(error: Error): string {
   if (!error.message.includes("Failed to fetch")) return error.message;
   if (location.protocol === "file:") {
     return 'This page was opened as a file, so it can\'t reach the tools or Ollama. Run "npm start" and open http://localhost:8765 instead.';
+  }
+  // Setup hints are for whoever runs it; visitors to the public site just
+  // need to know to try again.
+  if (!/^(localhost|127\.0\.0\.1)$/.test(new URL(CONFIG.bridgeUrl).hostname)) {
+    return `Couldn't reach ${CONFIG.botName} -- check your internet connection and try again.`;
   }
   return `Could not reach the chat bridge at ${CONFIG.bridgeUrl}. Run "npm start" in the celta-chat folder and keep that terminal open.`;
 }
@@ -816,6 +1007,147 @@ try {
 }
 // Enable the slide animation only after the saved state is in place.
 requestAnimationFrame(() => requestAnimationFrame(() => app.classList.add("sidebar-ready")));
+
+// ---- Model line and About ----
+// Both are optional per theme: a #modelInfo line and an #aboutBtn that opens
+// the About window. Its text is written once here so every theme says the
+// same thing -- keep the privacy part to what's actually true of this setup.
+
+const ABOUT_TOOL_LABELS: Record<string, string> = {
+  web_search: "Search the web",
+  image_search: "Find images",
+  fetch_page: "Read a web page in full",
+  wikipedia_summary: "Look things up on Wikipedia",
+  calculate: "Do math",
+  compare_stock_performance: "Compare stock and index performance, with a chart",
+  stock_price_history: "Chart a stock's price history",
+  plot_data: "Draw charts from numbers it found",
+};
+
+const modelInfo = document.getElementById("modelInfo");
+const aboutBtn = document.getElementById("aboutBtn");
+let aboutDialog: HTMLDialogElement | null = null;
+
+if (modelInfo) {
+  // Two parts, so a theme can set them on one line or stack them.
+  const label = document.createElement("span");
+  label.className = "model-label";
+  label.textContent = "Model";
+  const name = document.createElement("span");
+  name.className = "model-name";
+  name.textContent = CONFIG.modelLabel;
+  modelInfo.replaceChildren(label, name);
+  modelInfo.title = `${CONFIG.modelLabel} (${CONFIG.model}), running on a private server`;
+}
+
+function buildAboutDialog(): HTMLDialogElement {
+  const dialog = document.createElement("dialog");
+  dialog.className = "about-dialog";
+  dialog.setAttribute("aria-labelledby", "aboutTitle");
+  dialog.innerHTML = `
+    <div class="about-titlebar">
+      <h2 id="aboutTitle"></h2>
+      <button type="button" class="about-close" aria-label="Close">×</button>
+    </div>
+    <div class="about-body">
+      <p class="about-lead"></p>
+
+      <h3>The model</h3>
+      <ul class="about-model"></ul>
+
+      <h3>What it can do</h3>
+      <ul class="about-tools"><li>Checking…</li></ul>
+
+      <h3>Your privacy</h3>
+      <ul>
+        <li><strong>No accounts, no ads, no tracking.</strong> Nothing you send is sold, shared for
+          advertising, or used to train anything.</li>
+        <li><strong>Your chats are saved only in this browser,</strong> on your own device -- never on a
+          server. Clearing this site's data in your browser deletes them for good. So do the
+          few things it remembers about you.</li>
+        <li><strong>The AI model runs on a private server, not in a big company's cloud.</strong>
+          It answers each message and doesn't keep a copy of it. The model was made by Google,
+          but it runs on our hardware, so Google never sees your chats.</li>
+        <li><strong>Images you attach</strong> go only to that same server, to be looked at by the model.</li>
+      </ul>
+
+      <h3>What does leave the server</h3>
+      <ul>
+        <li><strong>Web searches.</strong> To answer with current facts, your question is sent as a
+          search query through a private search server (SearXNG), which passes it on to search
+          engines such as Google, Brave and Wikipedia. They see the words searched for, but not
+          who asked: no name, no account, no cookies, and the request comes from the search
+          server rather than your device. If that server is down, the search goes straight to
+          Brave from this computer instead.</li>
+        <li><strong>Reading a page, Wikipedia lookups and stock prices</strong> (from Yahoo Finance)
+          are fetched from this computer, like visiting those sites yourself -- they see your
+          internet connection, but no account or cookies.</li>
+        <li><strong>Links and pictures</strong> in answers load from the websites they come from, like
+          any link you'd open yourself.</li>
+      </ul>
+      <p class="about-note">So: don't put anything in a question you wouldn't type into a search engine.</p>
+    </div>
+    <div class="about-actions"><button type="button" class="about-ok">OK</button></div>`;
+
+  dialog.querySelector("#aboutTitle")!.textContent = `About ${CONFIG.botName}`;
+  dialog.querySelector(".about-lead")!.textContent =
+    `${CONFIG.botName} is a chat assistant that runs on a private server instead of a big ` +
+    "AI company's cloud. It looks things up on the web as it answers, so it can talk about " +
+    "current events, and it can read images you attach.";
+
+  const facts: [string, string][] = [
+    ["Model", `${CONFIG.modelLabel}, an open model by Google DeepMind (12 billion parameters)`],
+    ["Runs on", "A private server with two graphics cards, using Ollama"],
+    ["Model ID", CONFIG.model],
+    ["Memory", `${CONFIG.numCtx.toLocaleString()} tokens -- roughly the last ${MAX_HISTORY_MESSAGES} messages of a chat`],
+    ["Reads images", "Yes -- attach one with the + in the message box"],
+    ["Knowledge", "Its built-in knowledge stops at its training data, so it searches for anything current"],
+  ];
+  const modelList = dialog.querySelector(".about-model")!;
+  for (const [label, value] of facts) {
+    const item = document.createElement("li");
+    const name = document.createElement("strong");
+    name.textContent = `${label}: `;
+    item.append(name, value);
+    modelList.appendChild(item);
+  }
+
+  const close = () => dialog.close();
+  dialog.querySelector(".about-close")!.addEventListener("click", close);
+  dialog.querySelector(".about-ok")!.addEventListener("click", close);
+  // A click on the dimmed backdrop lands on the dialog element itself.
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) close();
+  });
+  document.body.appendChild(dialog);
+  return dialog;
+}
+
+// The tools come from the bridge, so the list is whatever the bot really has.
+async function fillAboutTools(dialog: HTMLDialogElement): Promise<void> {
+  const list = dialog.querySelector(".about-tools")!;
+  const lines = ["Remember things you tell it about yourself (saved in this browser)"];
+  try {
+    const tools = await loadTools();
+    const labels = tools.map((tool) => ABOUT_TOOL_LABELS[tool.name] ?? tool.description);
+    lines.unshift(...new Set(labels));
+  } catch {
+    lines.unshift("(Its web tools are offline right now -- start the bridge to use them.)");
+  }
+  list.replaceChildren(
+    ...lines.map((line) => {
+      const item = document.createElement("li");
+      item.textContent = line;
+      return item;
+    })
+  );
+}
+
+aboutBtn?.addEventListener("click", () => {
+  aboutDialog ??= buildAboutDialog();
+  aboutDialog.showModal();
+  void fillAboutTools(aboutDialog);
+});
 
 // ---- Themes ----
 // Each theme is its own page running this same script, so they share every

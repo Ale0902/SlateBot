@@ -50,7 +50,7 @@
   --user-bg: #ffffff;
   /* Screen names shown before each line of the conversation. */
   --user-sn: "Ale";
-  --bot-sn: "ChudBot";
+  --bot-sn: "Slate Bot";
 
   --raised: inset 1px 1px var(--edge-light), inset -1px -1px var(--edge-dark);
   --sunken: inset 1px 1px var(--edge-dark), inset -1px -1px var(--edge-light);
@@ -79,7 +79,7 @@ body {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 24px 16px;
+  padding: 16px;
   background: radial-gradient(ellipse at 30% 20%, #5089c4, var(--desk) 45%, var(--desk-deep));
   color: var(--ink);
   font-family: "ByteBounce", "Forced Square", Tahoma, Verdana, sans-serif;
@@ -130,8 +130,8 @@ html:has(.msg.typing) .msg .bubble img.attachment {
 /* ---- Window ---- */
 
 .window {
-  width: min(980px, 100%);
-  height: min(740px, calc(100dvh - 48px));
+  width: min(1120px, 100%);
+  height: min(840px, calc(100dvh - 32px));
   display: flex;
   flex-direction: column;
   background: var(--win);
@@ -268,6 +268,9 @@ html:has(.msg.typing) .msg .bubble img.attachment {
 /* ---- Buttons: raised, and pressed in while held (or while current) ---- */
 
 .nav-item,
+.about-btn,
+.about-close,
+.about-ok,
 .chip,
 .fmt-btn,
 .popover-btn,
@@ -282,6 +285,9 @@ html:has(.msg.typing) .msg .bubble img.attachment {
 }
 
 .nav-item:hover,
+.about-btn:hover,
+.about-close:hover,
+.about-ok:hover,
 .chip:hover,
 .fmt-btn:hover,
 .popover-btn:hover,
@@ -293,6 +299,9 @@ html:has(.msg.typing) .msg .bubble img.attachment {
 
 .nav-item:active,
 .nav-item.active,
+.about-btn:active,
+.about-close:active,
+.about-ok:active,
 .chip:active,
 .fmt-btn:active,
 .fmt-btn[aria-expanded="true"],
@@ -402,6 +411,146 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 13' shape-rendering='crispEdges'%3E%3Crect x='.5' y='.5' width='17' height='12' fill='%23f7a823' stroke='%233d3a2e'/%3E%3Cpath d='M1 1l8 6 8-6' fill='none' stroke='%233d3a2e'/%3E%3C/svg%3E") no-repeat center / contain;
 }
 
+/* Which model is answering, as a sunken status field, with About beside it. */
+.model-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 4px 4px 4px 8px;
+  background: var(--panel);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--sunken);
+}
+
+.model-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.model-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.model-name {
+  color: var(--edge-ink);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.about-btn {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* The About window, as a Windows 98 dialog. */
+.about-dialog {
+  width: min(540px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  background: var(--win);
+  color: var(--ink);
+  border: 1px solid var(--edge-ink);
+  border-radius: 8px 8px 3px 3px;
+  box-shadow: var(--raised), 6px 8px 0 rgba(0, 0, 0, 0.3);
+}
+
+.about-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.about-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 5px 0 9px;
+  background: linear-gradient(180deg, var(--title-top) 0%, var(--title) 45%, var(--title-bottom) 100%);
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.about-titlebar h2 {
+  flex: 1;
+  font-size: 15px;
+  font-weight: normal;
+}
+
+.about-close {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1;
+  text-shadow: none;
+}
+
+.about-body {
+  margin: 10px 10px 0;
+  padding: 10px 14px 12px;
+  overflow-y: auto;
+  background: var(--field);
+  border: 1px solid var(--edge-dark);
+  box-shadow: var(--sunken);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.about-body h3 {
+  margin: 14px 0 4px;
+  color: var(--sn-bot);
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.about-body ul {
+  padding-left: 18px;
+}
+
+.about-body li {
+  margin: 3px 0;
+}
+
+/* One weight only, so the key phrases stand out by color. */
+.about-body strong {
+  color: var(--title);
+  font-weight: normal;
+}
+
+.about-note {
+  margin-top: 10px;
+  padding: 6px 8px;
+  background: #fffbe8;
+  border: 1px solid var(--edge-mid);
+}
+
+.about-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.about-ok {
+  min-width: 84px;
+  height: 26px;
+}
+
 /* A chat's entry while it's being renamed from the right-click menu. */
 .recent-item.recent-rename {
   background: var(--field);
@@ -487,17 +636,35 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   gap: 5px;
 }
 
+/* The picture area is exactly 64px, border outside it, so a 32px icon is
+   shown at exactly 2x. */
 .buddy-icon {
+  box-sizing: content-box;
   width: 64px;
   height: 64px;
   border: 1px solid var(--edge-ink);
   box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
-.buddy-icon svg {
+.buddy-icon img {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* A pixel icon (icons/) on its colored tile. retro.js draws it at the
+   largest whole multiple of its size that fits -- 4x a 16px character in a
+   buddy icon, 3x in the picker -- and it's scaled with hard pixel edges, so
+   no pixel gets smeared. */
+.icon-tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.icon-tile img {
+  image-rendering: pixelated;
 }
 
 .sn-label {
@@ -864,6 +1031,18 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   left: 0;
 }
 
+/* Slate Bot's icon is at the top of the window, so its picker opens below
+   it -- the column is only as tall as the icon and name, not the chat. */
+.convo .avatar-col {
+  position: relative;
+  align-self: start;
+}
+
+.bot-icon-picker {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+
 .icon-picker .popover-btn {
   width: calc(100% - 16px);
   margin: 8px 8px 0;
@@ -871,12 +1050,14 @@ html:has(.msg.typing) .msg .bubble img.attachment {
 
 .icon-grid {
   display: grid;
-  grid-template-columns: repeat(3, 48px);
+  grid-template-columns: repeat(4, 50px);
   gap: 6px;
   padding: 0 8px;
 }
 
+/* The picture area is exactly 48px (3x a 16px icon), border outside it. */
 .icon-choice {
+  box-sizing: content-box;
   width: 48px;
   height: 48px;
   padding: 0;
@@ -895,9 +1076,7 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   outline-offset: 2px;
 }
 
-.icon-choice svg,
 .icon-choice img,
-.icon-btn svg,
 .icon-btn img {
   display: block;
   width: 100%;
@@ -1009,6 +1188,11 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   font-size: 13px;
 }
 
+.attachment-busy {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .input-wrap {
   grid-area: input;
   position: relative;
@@ -1027,7 +1211,9 @@ textarea {
   border-radius: 0;
   box-shadow: var(--sunken);
   outline: none;
-  font-size: var(--chat-size);
+  /* A fixed size: the "A" buttons resize the conversation, not the box you
+     type in. */
+  font-size: 16px;
   /* ByteBounce comes out 1.5x its font-size (see @font-face). */
   line-height: 1.9;
 }
