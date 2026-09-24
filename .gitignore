@@ -1,5 +1,7 @@
-# Private settings (API keys) -- .env.example is the shareable version.
+# Private settings: the real one (API keys), and the example, which lists
+# this network's addresses.
 .env
+.env.example
 
 # Written while the bridge runs.
 logs/
