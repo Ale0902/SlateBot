@@ -533,6 +533,10 @@ html:has(.msg.typing) .msg .bubble img.attachment {
   font-weight: normal;
 }
 
+.about-body a {
+  color: var(--link);
+}
+
 .about-note {
   margin-top: 10px;
   padding: 6px 8px;

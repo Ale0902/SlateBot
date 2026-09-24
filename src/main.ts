@@ -1112,6 +1112,11 @@ function buildAboutDialog(): HTMLDialogElement {
     modelList.appendChild(item);
   }
 
+  // A theme's own credits (say, for its artwork) go at the end, from a
+  // <template id="aboutCredits"> in its page.
+  const credits = document.getElementById("aboutCredits") as HTMLTemplateElement | null;
+  if (credits) dialog.querySelector(".about-body")!.append(credits.content.cloneNode(true));
+
   const close = () => dialog.close();
   dialog.querySelector(".about-close")!.addEventListener("click", close);
   dialog.querySelector(".about-ok")!.addEventListener("click", close);
