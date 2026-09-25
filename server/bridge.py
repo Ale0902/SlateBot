@@ -61,9 +61,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # environment variables win over it.
 load_dotenv(os.path.join(ROOT, '.env'))
 
-OLLAMA_URL = os.getenv('OLLAMA_URL', 'http://10.7.163.103:11434').rstrip('/')
+# The remote desktop is reachable through Tailscale, so a local .env is not
+# required for the normal setup. Individual service URLs still override this.
+SLATEBOT_HOST = os.getenv('SLATEBOT_HOST', '100.113.193.53')
+OLLAMA_URL = os.getenv('OLLAMA_URL', f'http://{SLATEBOT_HOST}:11434').rstrip('/')
 # Passed on to the tool server, so both always use the same one.
-SEARXNG_URL = os.getenv('SEARXNG_URL', 'http://10.7.163.103:8080')
+SEARXNG_URL = os.getenv('SEARXNG_URL', f'http://{SLATEBOT_HOST}:8080')
 MCP_SERVER_SCRIPT = os.getenv('MCP_SERVER_SCRIPT', os.path.join(ROOT, 'server', 'mcp_server.py'))
 HOST = os.getenv('BRIDGE_HOST', '127.0.0.1')
 PORT = int(os.getenv('BRIDGE_PORT', '8765'))

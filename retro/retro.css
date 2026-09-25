@@ -25,6 +25,7 @@
 }
 
 :root {
+  --taskbar-height: 34px;
   --desk: #3a6ea5;
   --desk-deep: #1f4c80;
   --win: #ece9d8;
@@ -51,6 +52,8 @@
   /* Screen names shown before each line of the conversation. */
   --user-sn: "Ale";
   --bot-sn: "Slate Bot";
+  --scene-image: url("https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2200&q=85");
+  --scene-position: center;
 
   --raised: inset 1px 1px var(--edge-light), inset -1px -1px var(--edge-dark);
   --sunken: inset 1px 1px var(--edge-dark), inset -1px -1px var(--edge-light);
@@ -80,7 +83,10 @@ body {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: radial-gradient(ellipse at 30% 20%, #5089c4, var(--desk) 45%, var(--desk-deep));
+  background-image: linear-gradient(rgba(20, 68, 112, 0.2), rgba(20, 68, 112, 0.2)), var(--scene-image);
+  background-position: var(--scene-position);
+  background-size: cover;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: "ByteBounce", "Forced Square", Tahoma, Verdana, sans-serif;
   font-size: 15px;
@@ -130,8 +136,16 @@ textarea,
 /* ---- Window ---- */
 
 .window {
+  position: fixed;
+  left: 50%;
+  top: calc((100dvh - var(--taskbar-height)) / 2);
+  transform: translate(-50%, -50%);
   width: min(1120px, 100%);
-  height: min(840px, calc(100dvh - 32px));
+  height: min(840px, calc(100dvh - 48px));
+  min-width: min(620px, calc(100vw - 32px));
+  min-height: min(420px, calc(100dvh - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
   background: var(--win);
@@ -139,6 +153,12 @@ textarea,
   border-radius: 10px 10px 4px 4px;
   box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.25);
   overflow: hidden;
+  resize: none;
+  z-index: 2;
+}
+
+.window[hidden] {
+  display: none;
 }
 
 .titlebar {
@@ -160,6 +180,300 @@ textarea,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.window-controls {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.window-control {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  padding: 0 0 3px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: 15px;
+  line-height: 1;
+  cursor: var(--cursor-hand);
+}
+
+.window-control:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.window-control.close:hover {
+  background: #c83232;
+}
+
+.window-control:active {
+  padding: 2px 0 1px 2px;
+}
+
+.window.is-minimized {
+  display: none;
+}
+
+.window.is-minimized .panes,
+.window.is-minimized .statusbar {
+  display: none;
+}
+
+.window.is-minimizing,
+.window.is-closing {
+  pointer-events: none;
+}
+
+.window.is-minimizing {
+  animation: minimize-window 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.window.is-closing {
+  animation: close-window 180ms ease-in forwards;
+}
+
+.window.is-restoring {
+  animation: restore-window 260ms cubic-bezier(0, 0.55, 0.45, 1) forwards;
+}
+
+@keyframes minimize-window {
+  from {
+    transform: none;
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--minimize-x), var(--minimize-y)) scale(0.08);
+    opacity: 0.1;
+  }
+}
+
+@keyframes close-window {
+  from {
+    transform: none;
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes restore-window {
+  from {
+    transform: translate(var(--restore-x), var(--restore-y)) scale(0.08);
+    opacity: 0.1;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.window.is-maximized {
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: var(--taskbar-height);
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  transform: none;
+  resize: none;
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 4;
+  width: 14px;
+  height: 14px;
+}
+
+.resize-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.resize-se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.window.is-minimized .resize-handle,
+.window.is-maximized .resize-handle {
+  display: none;
+}
+
+.desktop {
+  position: fixed;
+  z-index: 1;
+  inset: 0 0 var(--taskbar-height);
+  display: grid;
+  place-items: center;
+}
+
+.desktop[hidden] {
+  display: none;
+}
+
+.desktop-icon {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 92px;
+  padding: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #fff;
+  text-shadow: 1px 1px 0 #173454;
+  cursor: var(--cursor-hand);
+}
+
+.desktop-icon:hover,
+.desktop-icon:focus-visible {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(20, 68, 112, 0.28);
+  outline: none;
+}
+
+.desktop-icon-art {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 60px;
+}
+
+.taskbar {
+  position: fixed;
+  z-index: 5;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  height: var(--taskbar-height);
+  padding: 3px 6px 3px 0;
+  background: linear-gradient(180deg, #3d9be8 0%, #1768c2 45%, #0d4b9c 100%);
+  border-top: 1px solid #73c7ff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.45), 0 -1px 0 rgba(0, 35, 90, 0.55);
+  color: #fff;
+}
+
+.start-button,
+.task-button {
+  display: flex;
+  align-items: center;
+  height: 27px;
+  border: 1px solid #0a3e7c;
+  border-radius: 0 10px 10px 0;
+  color: #fff;
+  cursor: var(--cursor-hand);
+  text-shadow: 1px 1px 0 rgba(0, 45, 90, 0.7);
+}
+
+.start-button {
+  gap: 5px;
+  padding: 0 18px 0 9px;
+  background: linear-gradient(180deg, #7dcc52, #3c9c31 48%, #247523);
+  border-left: none;
+  border-color: #1b6420;
+  border-radius: 0 12px 12px 0;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.start-button:hover {
+  background: linear-gradient(180deg, #93dc68, #4dad3b 48%, #2d842b);
+}
+
+.start-logo {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  font-size: 15px;
+  font-style: normal;
+}
+
+.taskbar-divider {
+  width: 1px;
+  height: 25px;
+  margin: 0 7px;
+  background: #0c4b96;
+  box-shadow: 1px 0 #56aef0;
+}
+
+.task-button {
+  gap: 7px;
+  width: 190px;
+  padding: 0 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a83d6, #1761b7);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.3), inset -1px -1px rgba(0, 35, 90, 0.35);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-button:hover,
+.task-button[aria-pressed="false"] {
+  background: linear-gradient(180deg, #3a91df, #2771c4);
+}
+
+.task-button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #1555a1, #0b438d);
+  box-shadow: inset 1px 1px rgba(0, 25, 75, 0.4), inset -1px -1px rgba(255, 255, 255, 0.2);
+}
+
+.task-icon {
+  color: #ffe45c;
+  font-size: 14px;
+}
+
+.taskbar-spacer {
+  flex: 1;
+}
+
+.system-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 27px;
+  padding: 0 10px;
+  background: rgba(10, 54, 125, 0.3);
+  border-left: 1px solid rgba(0, 35, 90, 0.45);
+  color: #e9f5ff;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: 12px;
+}
+
+.tray-status {
+  color: #79e66d;
+  font-size: 10px;
 }
 
 /* Click the chat's name to rename it -- edited like a Windows rename box. */
@@ -229,6 +543,13 @@ textarea,
   background: var(--panel);
   color: var(--muted);
   font-size: 12px;
+}
+
+.status-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .status-text {
@@ -1282,10 +1603,36 @@ textarea::placeholder {
   }
 
   .window {
-    height: 100dvh;
+    position: static;
+    transform: none;
+    height: calc(100dvh - var(--taskbar-height));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
     border: none;
     border-radius: 0;
     box-shadow: none;
+    resize: none;
+  }
+
+  .resize-handle {
+    display: none;
+  }
+
+  .window.is-minimized {
+    height: calc(100dvh - var(--taskbar-height));
+  }
+
+  .window.is-maximized {
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: calc(100dvh - var(--taskbar-height));
+  }
+
+  .task-button {
+    width: 130px;
   }
 
   .sidebar,
@@ -1306,6 +1653,14 @@ textarea::placeholder {
 
   .toolbar {
     padding-left: 0;
+  }
+
+  .statusbar {
+    gap: 6px;
+  }
+
+  .status-controls {
+    gap: 4px;
   }
 
   .composer {

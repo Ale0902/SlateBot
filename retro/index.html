@@ -15,6 +15,11 @@
       <svg viewBox="0 0 12 10" width="14" height="12" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h12v10H0zM1 1v8h3V1zm4 0v8h6V1z" fill="currentColor" fill-rule="evenodd"/></svg>
     </button>
     <span class="title-text"><span id="chatTitle">New chat</span> - Instant Message</span>
+    <div class="window-controls" aria-label="Window controls">
+      <button type="button" class="window-control" id="minimizeBtn" aria-label="Minimize window" title="Minimize">_</button>
+      <button type="button" class="window-control" id="maximizeBtn" aria-label="Maximize window" title="Maximize">□</button>
+      <button type="button" class="window-control close" id="closeBtn" aria-label="Close window" title="Close">×</button>
+    </div>
   </header>
 
   <div class="panes">
@@ -114,12 +119,53 @@
 
   <div class="statusbar">
     <span class="status-text">Slate Bot is AI and can make mistakes. Check important info.</span>
-    <label class="theme-field">
-      Theme:
+    <div class="status-controls">
+      <label class="theme-field">
+        Scene:
+        <select id="scenePicker" class="theme-picker" aria-label="Desktop scene"></select>
+      </label>
+      <label class="theme-field">
+        Theme:
       <select id="themePicker" class="theme-picker"></select>
-    </label>
+      </label>
+    </div>
   </div>
+  <span class="resize-handle resize-nw" data-resize="nw" aria-hidden="true"></span>
+  <span class="resize-handle resize-ne" data-resize="ne" aria-hidden="true"></span>
+  <span class="resize-handle resize-sw" data-resize="sw" aria-hidden="true"></span>
+  <span class="resize-handle resize-se" data-resize="se" aria-hidden="true"></span>
 </div>
+
+<main class="desktop" id="desktop">
+  <button type="button" class="desktop-icon" id="desktopIcon" aria-label="Open Slate Bot">
+    <span class="desktop-icon-art" aria-hidden="true">
+      <svg viewBox="0 0 32 28" width="64" height="56" shape-rendering="crispEdges">
+        <rect x="3.5" y="1.5" width="25" height="18" fill="#c0c0c0" stroke="#3d3a2e"/>
+        <rect x="6" y="4" width="20" height="13" fill="#0a246a"/>
+        <path d="M9 8h8v2H9zm0 4h12v2H9z" fill="#fff"/>
+        <path d="M11 20h10v3h4v3H7v-3h4z" fill="#c0c0c0" stroke="#3d3a2e"/>
+      </svg>
+    </span>
+    <span>Slate Bot</span>
+  </button>
+</main>
+
+<footer class="taskbar" id="taskbar">
+  <button type="button" class="start-button" aria-label="Open Start menu">
+    <span class="start-logo" aria-hidden="true">▣</span>
+    <span>start</span>
+  </button>
+  <span class="taskbar-divider" aria-hidden="true"></span>
+  <button type="button" class="task-button" id="taskButton" aria-label="Slate Bot window" aria-pressed="true">
+    <span class="task-icon" aria-hidden="true">▣</span>
+    <span>Slate Bot</span>
+  </button>
+  <span class="taskbar-spacer"></span>
+  <span class="system-tray">
+    <span class="tray-status" aria-label="Slate Bot is online">●</span>
+    <time id="clock" aria-label="Current time"></time>
+  </span>
+</footer>
 
 <!-- Added to the end of the About window (see buildAboutDialog in
      src/main.ts). Where each icon came from: icons/CREDITS.txt. -->
@@ -130,6 +176,14 @@
       <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>,
       from his Tiny Dungeon, Pixel Platformer and 1-Bit Pack sets -- shared
       free for anyone to use (CC0). Thanks, Kenney!</li>
+    <li><strong>Desktop scenes</strong>: free photographs from
+      <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>.
+      Sources:
+      <a href="https://unsplash.com/s/photos/blue-sky-clouds" target="_blank" rel="noopener noreferrer">sky</a>,
+      <a href="https://unsplash.com/s/photos/mountain-lake" target="_blank" rel="noopener noreferrer">landscape</a>,
+      <a href="https://unsplash.com/s/photos/green-field" target="_blank" rel="noopener noreferrer">grass field</a>,
+      <a href="https://unsplash.com/s/photos/night-sky" target="_blank" rel="noopener noreferrer">night</a> and
+      <a href="https://unsplash.com/s/photos/forest" target="_blank" rel="noopener noreferrer">forest</a>.</li>
   </ul>
 </template>
 

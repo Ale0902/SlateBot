@@ -5,6 +5,246 @@
   const root = document.documentElement;
   const $ = (id) => document.getElementById(id);
   const input = $("input");
+  const appWindow = document.querySelector(".window");
+  const titlebar = document.querySelector(".titlebar");
+  const taskButton = $("taskButton");
+
+  // Desktop-style window controls. The native resize handle handles growth;
+  // the title bar supplies movement without changing the chat's layout.
+  if (appWindow && titlebar) {
+    let drag = null;
+    let resize = null;
+
+    function usableHeight() {
+      const taskbarHeight = parseFloat(getComputedStyle(root).getPropertyValue("--taskbar-height")) || 0;
+      return innerHeight - taskbarHeight;
+    }
+
+    function minimumSize() {
+      return {
+        width: Math.min(620, innerWidth - 16),
+        height: Math.min(420, usableHeight() - 16),
+      };
+    }
+
+    function restoreFromMaximized() {
+      if (!appWindow.classList.contains("is-maximized")) return;
+      appWindow.classList.remove("is-maximized");
+      appWindow.style.width = "";
+      appWindow.style.height = "";
+      appWindow.style.right = "";
+      appWindow.style.bottom = "";
+      appWindow.style.left = "0px";
+      appWindow.style.top = "0px";
+      appWindow.style.transform = "none";
+      const rect = appWindow.getBoundingClientRect();
+      appWindow.style.left = `${Math.max(8, (innerWidth - rect.width) / 2)}px`;
+      appWindow.style.top = `${Math.max(8, (usableHeight() - rect.height) / 2)}px`;
+    }
+
+    function toggleMaximized() {
+      if (appWindow.classList.contains("is-maximized")) {
+        restoreFromMaximized();
+        $("maximizeBtn")?.setAttribute("aria-label", "Maximize window");
+        return;
+      }
+      appWindow.classList.remove("is-minimized");
+      appWindow.style.width = "";
+      appWindow.style.height = "";
+      appWindow.style.left = "";
+      appWindow.style.top = "";
+      appWindow.style.right = "";
+      appWindow.style.bottom = "";
+      appWindow.style.transform = "";
+      appWindow.classList.add("is-maximized");
+      $("maximizeBtn")?.setAttribute("aria-label", "Restore window");
+    }
+
+    titlebar.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || event.target.closest("button")) return;
+      if (appWindow.classList.contains("is-minimized") || appWindow.classList.contains("is-maximized")) return;
+      const rect = appWindow.getBoundingClientRect();
+      drag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+      titlebar.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+
+    titlebar.addEventListener("pointermove", (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const rect = appWindow.getBoundingClientRect();
+      const left = Math.min(Math.max(8, event.clientX - drag.offsetX), innerWidth - rect.width - 8);
+      const top = Math.min(Math.max(8, event.clientY - drag.offsetY), usableHeight() - rect.height - 8);
+      appWindow.style.left = `${left}px`;
+      appWindow.style.top = `${top}px`;
+      appWindow.style.transform = "none";
+    });
+
+    function stopDrag(event) {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      drag = null;
+      titlebar.releasePointerCapture(event.pointerId);
+    }
+
+    titlebar.addEventListener("pointerup", stopDrag);
+    titlebar.addEventListener("pointercancel", stopDrag);
+
+    titlebar.addEventListener("dblclick", (event) => {
+      if (event.target.closest("button") || event.target.closest("#chatTitle")) return;
+      if (appWindow.classList.contains("is-minimized")) {
+        appWindow.classList.remove("is-minimized");
+        resetWindowAnimation();
+      }
+      toggleMaximized();
+      event.preventDefault();
+    });
+
+    for (const handle of appWindow.querySelectorAll(".resize-handle")) {
+      handle.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || appWindow.classList.contains("is-minimized") || appWindow.classList.contains("is-maximized")) return;
+        const rect = appWindow.getBoundingClientRect();
+        resize = { pointerId: event.pointerId, direction: handle.dataset.resize, rect, startX: event.clientX, startY: event.clientY };
+        handle.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+
+      handle.addEventListener("pointermove", (event) => {
+        if (!resize || resize.pointerId !== event.pointerId) return;
+        const { rect, direction, startX, startY } = resize;
+        const min = minimumSize();
+        const maxWidth = innerWidth - 16;
+        const maxHeight = usableHeight() - 16;
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+        let width = rect.width + (direction.includes("e") ? deltaX : -deltaX);
+        let height = rect.height + (direction.includes("s") ? deltaY : -deltaY);
+        width = Math.max(min.width, Math.min(maxWidth, width));
+        height = Math.max(min.height, Math.min(maxHeight, height));
+        const left = direction.includes("w") ? rect.right - width : rect.left;
+        const top = direction.includes("n") ? rect.bottom - height : rect.top;
+        appWindow.style.width = `${width}px`;
+        appWindow.style.height = `${height}px`;
+        appWindow.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, left))}px`;
+        appWindow.style.top = `${Math.max(8, Math.min(usableHeight() - height - 8, top))}px`;
+        appWindow.style.transform = "none";
+      });
+
+      function stopResize(event) {
+        if (!resize || resize.pointerId !== event.pointerId) return;
+        resize = null;
+        handle.releasePointerCapture(event.pointerId);
+      }
+
+      handle.addEventListener("pointerup", stopResize);
+      handle.addEventListener("pointercancel", stopResize);
+    }
+
+    function resetWindowAnimation() {
+      appWindow.classList.remove("is-minimizing", "is-closing", "is-restoring");
+      appWindow.style.removeProperty("--minimize-x");
+      appWindow.style.removeProperty("--minimize-y");
+      appWindow.style.removeProperty("--restore-x");
+      appWindow.style.removeProperty("--restore-y");
+      appWindow.style.opacity = "";
+      appWindow.style.pointerEvents = "";
+    }
+
+    function animateToTaskbar(done) {
+      if (!taskButton) return done();
+      const windowRect = appWindow.getBoundingClientRect();
+      const taskRect = taskButton.getBoundingClientRect();
+      const x = taskRect.left + taskRect.width / 2 - (windowRect.left + windowRect.width / 2);
+      const y = taskRect.top + taskRect.height / 2 - (windowRect.top + windowRect.height / 2);
+      appWindow.style.left = `${windowRect.left}px`;
+      appWindow.style.top = `${windowRect.top}px`;
+      appWindow.style.setProperty("--minimize-x", `${x}px`);
+      appWindow.style.setProperty("--minimize-y", `${y}px`);
+      appWindow.style.transform = "none";
+      appWindow.classList.add("is-minimizing");
+      window.setTimeout(() => {
+        appWindow.classList.remove("is-minimizing");
+        done();
+      }, 260);
+    }
+
+    $("minimizeBtn")?.addEventListener("click", () => {
+      if (appWindow.classList.contains("is-minimizing")) return;
+      if (!appWindow.classList.contains("is-minimized") && appWindow.classList.contains("is-maximized")) {
+        appWindow.classList.remove("is-maximized");
+        appWindow.style.left = "";
+        appWindow.style.top = "";
+        appWindow.style.width = "";
+        appWindow.style.height = "";
+        appWindow.style.transform = "";
+      }
+      if (appWindow.classList.contains("is-minimized")) {
+        appWindow.classList.remove("is-minimized");
+        resetWindowAnimation();
+        $("minimizeBtn").setAttribute("aria-label", "Minimize window");
+        taskButton?.setAttribute("aria-pressed", "true");
+        return;
+      }
+      animateToTaskbar(() => {
+        appWindow.classList.add("is-minimized");
+        resetWindowAnimation();
+        $("minimizeBtn").setAttribute("aria-label", "Restore window");
+        taskButton?.setAttribute("aria-pressed", "false");
+      });
+    });
+
+    $("maximizeBtn")?.addEventListener("click", () => {
+      toggleMaximized();
+    });
+
+    $("closeBtn")?.addEventListener("click", () => {
+      if (appWindow.classList.contains("is-closing")) return;
+      appWindow.classList.add("is-closing");
+      window.setTimeout(() => {
+        appWindow.hidden = true;
+        appWindow.classList.remove("is-closing");
+        appWindow.style.opacity = "";
+        taskButton?.setAttribute("aria-pressed", "false");
+        $("desktopIcon")?.focus();
+      }, 180);
+    });
+
+    $("desktopIcon")?.addEventListener("dblclick", () => openWindow(true));
+
+    function openWindow(fromDesktop = false) {
+      resetWindowAnimation();
+      appWindow.hidden = false;
+      appWindow.classList.remove("is-minimized");
+      $("minimizeBtn")?.setAttribute("aria-label", "Minimize window");
+      taskButton?.setAttribute("aria-pressed", "true");
+      if (!fromDesktop) return;
+
+      const icon = $("desktopIcon");
+      if (!icon) return;
+      const windowRect = appWindow.getBoundingClientRect();
+      const iconRect = icon.getBoundingClientRect();
+      appWindow.style.setProperty("--restore-x", `${iconRect.left + iconRect.width / 2 - (windowRect.left + windowRect.width / 2)}px`);
+      appWindow.style.setProperty("--restore-y", `${iconRect.top + iconRect.height / 2 - (windowRect.top + windowRect.height / 2)}px`);
+      appWindow.classList.add("is-restoring");
+      window.setTimeout(() => {
+        appWindow.classList.remove("is-restoring");
+        appWindow.style.removeProperty("--restore-x");
+        appWindow.style.removeProperty("--restore-y");
+      }, 260);
+    }
+
+    taskButton?.addEventListener("click", () => {
+      if (appWindow.hidden) openWindow();
+      else if (appWindow.classList.contains("is-minimized")) openWindow();
+      else appWindow.focus();
+    });
+
+    function updateClock() {
+      const clock = $("clock");
+      if (clock) clock.textContent = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date());
+    }
+
+    updateClock();
+    window.setInterval(updateClock, 30_000);
+  }
 
   function load(key, fallback) {
     try {
@@ -12,6 +252,58 @@
     } catch {
       return fallback;
     }
+  }
+
+  // Free Unsplash photographs give the chat window a period desktop mood
+  // without bundling copyrighted Windows wallpaper into the project.
+  const SCENE_KEY = "celta-chat.retroScene";
+  const SCENES = [
+    {
+      id: "bliss",
+      label: "Bliss-inspired",
+      image: "url(\"https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2200&q=85\")",
+      position: "center",
+    },
+    {
+      id: "grass",
+      label: "XP grass",
+      image: "url(\"https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2200&q=85\")",
+      position: "center",
+    },
+    {
+      id: "aero",
+      label: "Aero sky",
+      image: "url(\"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=85\")",
+      position: "center",
+    },
+    {
+      id: "midnight",
+      label: "Midnight glass",
+      image: "url(\"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=85\")",
+      position: "center",
+    },
+    {
+      id: "forest",
+      label: "Green desktop",
+      image: "url(\"https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85\")",
+      position: "center",
+    },
+  ];
+
+  const scenePicker = $("scenePicker");
+  if (scenePicker) {
+    for (const scene of SCENES) scenePicker.add(new Option(scene.label, scene.id));
+
+    function setScene(id) {
+      const scene = SCENES.find((candidate) => candidate.id === id) ?? SCENES[0];
+      scenePicker.value = scene.id;
+      root.style.setProperty("--scene-image", scene.image);
+      root.style.setProperty("--scene-position", scene.position);
+      save(SCENE_KEY, scene.id === SCENES[0].id ? null : scene.id);
+    }
+
+    setScene(load(SCENE_KEY, SCENES[0].id));
+    scenePicker.addEventListener("change", () => setScene(scenePicker.value));
   }
 
   // null removes the key, so going back to a default doesn't leave it pinned.
