@@ -233,7 +233,9 @@ function appendImage(bubble: HTMLElement, src: string, alt: string): HTMLImageEl
 // Text goes in via textContent; the (already verified) Source line becomes a link.
 function fillBubble(bubble: HTMLElement, message: ChatMessage): void {
   const match = message.role === "assistant" ? SOURCE_LINE_RE.exec(message.content) : null;
-  const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1] : null;
+  // Without punctuation the model puts after it ("...706d."), which would
+  // break the link.
+  const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1].replace(/[.,;:!?)\]]+$/, "") : null;
   bubble.textContent = sourceUrl ? stripCitation(message.content) : message.content;
 
   if (message.image) {
@@ -314,41 +316,77 @@ function appendLinkPreview(bubble: HTMLElement, url: string): void {
   bubble.appendChild(card);
 
   void loadPreview(url).then((preview) => {
-    if (!preview || !card.isConnected) return card.remove();
+    if (!card.isConnected) return;
     const nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
-
-    if (preview.image) {
-      const thumb = document.createElement("img");
-      thumb.className = "link-card-thumb";
-      thumb.src = preview.image;
-      thumb.alt = "";
-      thumb.loading = "lazy";
-      thumb.referrerPolicy = "no-referrer";
-      // Many sites refuse hotlinked images -- fall back to a text-only card.
-      thumb.addEventListener("error", () => {
-        thumb.remove();
-        if (!preview.title) card.remove();
-      });
-      card.appendChild(thumb);
-    }
-
-    const text = document.createElement("div");
-    text.className = "link-card-text";
-    for (const [className, value] of [
-      ["link-card-site", preview.siteName],
-      ["link-card-title", preview.title],
-      ["link-card-desc", preview.description],
-    ]) {
-      if (!value) continue;
-      const line = document.createElement("span");
-      line.className = className;
-      line.textContent = value;
-      text.appendChild(line);
-    }
-    card.appendChild(text);
+    if (preview) fillPreviewCard(card, preview);
+    else fillBasicCard(card, url);
     card.hidden = false;
     if (nearBottom) chat.scrollTop = chat.scrollHeight;
   });
+}
+
+// The page's own preview: its picture, site, title and description.
+function fillPreviewCard(card: HTMLAnchorElement, preview: LinkPreview): void {
+  if (preview.image) {
+    const thumb = document.createElement("img");
+    thumb.className = "link-card-thumb";
+    thumb.src = preview.image;
+    thumb.alt = "";
+    thumb.loading = "lazy";
+    thumb.referrerPolicy = "no-referrer";
+    // Many sites refuse hotlinked images -- fall back to a text-only card,
+    // or to the basic one if there's no title to show either.
+    thumb.addEventListener("error", () => {
+      thumb.remove();
+      if (!preview.title) fillBasicCard(card, preview.url);
+    });
+    card.appendChild(thumb);
+  }
+
+  const text = document.createElement("div");
+  text.className = "link-card-text";
+  for (const [className, value] of [
+    ["link-card-site", preview.siteName],
+    ["link-card-title", preview.title],
+    ["link-card-desc", preview.description],
+  ]) {
+    if (!value) continue;
+    const line = document.createElement("span");
+    line.className = className;
+    line.textContent = value;
+    text.appendChild(line);
+  }
+  card.appendChild(text);
+}
+
+// For a page that can't be previewed -- plenty of sites turn away automated
+// requests, so the bridge never sees their preview tags -- the site's name,
+// with its icon when it has one. The icon loads straight from the site,
+// like any picture in an answer.
+function fillBasicCard(card: HTMLAnchorElement, url: string): void {
+  let site: URL;
+  try {
+    site = new URL(url);
+  } catch {
+    card.remove();
+    return;
+  }
+  const icon = document.createElement("img");
+  icon.className = "link-card-icon";
+  icon.src = `${site.origin}/favicon.ico`;
+  icon.alt = "";
+  icon.referrerPolicy = "no-referrer";
+  icon.addEventListener("error", () => icon.remove());
+
+  const text = document.createElement("div");
+  text.className = "link-card-text";
+  const name = document.createElement("span");
+  name.className = "link-card-title";
+  name.textContent = site.hostname.replace(/^www\./, "");
+  text.appendChild(name);
+
+  card.classList.add("is-basic");
+  card.replaceChildren(icon, text);
 }
 
 function addMessage(role: MessageRole, message: ChatMessage, extraClass = ""): void {

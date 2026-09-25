@@ -786,6 +786,23 @@ button, textarea {
   background: var(--bg-soft);
 }
 
+/* The basic card, for a page that can't be previewed: the site's icon and
+   name, sized to fit them. */
+.msg .bubble a.link-card.is-basic {
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.link-card-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
 .link-card-text {
   display: flex;
   flex-direction: column;

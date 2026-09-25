@@ -1317,6 +1317,22 @@ textarea,
   border: 1px solid var(--edge-dark);
 }
 
+/* The basic card, for a page that can't be previewed: the site's icon and
+   name, sized to fit them. */
+.bubble a.link-card.is-basic {
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+}
+
+.link-card-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .link-card-text {
   display: flex;
   flex-direction: column;

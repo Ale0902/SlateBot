@@ -63,6 +63,8 @@ const SOURCE_LINE_RE = /^[ \t]*Source:[ \t]*(https?:\/\/\S+)[ \t]*$/im;
 // Any Source line at all -- the model also writes ones like "Source: ESPN" or
 // "Source: <the tool's result text>", which can't be verified either.
 const ANY_SOURCE_LINE_RE = /^[ \t]*Source:.*$/gim;
+// A citation tacked onto the end of the last sentence instead of its own line.
+const TRAILING_SOURCE_RE = /[ \t]+(Source:[ \t]*https?:\/\/\S+)[ \t]*$/i;
 // Tools that render a chart tag it with this marker. It's pulled out of the
 // result as a side channel -- never asked for in the model's reply.
 const CHART_PATH_RE = /^CHART_PATH:[ \t]*(.+?)[ \t]*$/m;
@@ -95,6 +97,12 @@ function verifyCitation(content, seenUrls) {
         return content;
     return (kept.replace(/\n{3,}/g, "\n\n").trimEnd() +
         "\n\n(Note: I couldn't verify that source against what I actually looked up -- treat this with caution.)");
+}
+// The model sometimes ends its answer "...last sentence. Source: <url>"
+// rather than giving the citation a line of its own. Moving it onto one gets
+// it checked like any other -- and, if it checks out, linked and previewed.
+function separateTrailingSource(content) {
+    return content.replace(TRAILING_SOURCE_RE, "\n$1");
 }
 function stripCitation(content) {
     return content.replace(ANY_SOURCE_LINE_RE, "").replace(/\n{3,}/g, "\n\n").trimEnd();
@@ -523,7 +531,7 @@ async function runAgent(question, image, history, priorUrls, onStatus) {
     const retryQuery = pickRetryQuery(question, history);
     const callsMade = new Set();
     const finish = (content) => {
-        const cleaned = content.replace(TOOL_CALL_LINE_RE, "").trim();
+        const cleaned = separateTrailingSource(content.replace(TOOL_CALL_LINE_RE, "").trim());
         // Chart data is computed by the tool, so there's no real URL to cite.
         const answer = chartUrl ? stripCitation(cleaned) : verifyCitation(cleaned, seenUrls);
         const source = SOURCE_LINE_RE.exec(answer)?.[1] ?? null;
@@ -778,7 +786,9 @@ function appendImage(bubble, src, alt) {
 // Text goes in via textContent; the (already verified) Source line becomes a link.
 function fillBubble(bubble, message) {
     const match = message.role === "assistant" ? SOURCE_LINE_RE.exec(message.content) : null;
-    const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1] : null;
+    // Without punctuation the model puts after it ("...706d."), which would
+    // break the link.
+    const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1].replace(/[.,;:!?)\]]+$/, "") : null;
     bubble.textContent = sourceUrl ? stripCitation(message.content) : message.content;
     if (message.image) {
         bubble.prepend(appendImage(bubble, message.image, "Attached image"));
@@ -839,43 +849,79 @@ function appendLinkPreview(bubble, url) {
     card.hidden = true;
     bubble.appendChild(card);
     void loadPreview(url).then((preview) => {
-        if (!preview || !card.isConnected)
-            return card.remove();
+        if (!card.isConnected)
+            return;
         const nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
-        if (preview.image) {
-            const thumb = document.createElement("img");
-            thumb.className = "link-card-thumb";
-            thumb.src = preview.image;
-            thumb.alt = "";
-            thumb.loading = "lazy";
-            thumb.referrerPolicy = "no-referrer";
-            // Many sites refuse hotlinked images -- fall back to a text-only card.
-            thumb.addEventListener("error", () => {
-                thumb.remove();
-                if (!preview.title)
-                    card.remove();
-            });
-            card.appendChild(thumb);
-        }
-        const text = document.createElement("div");
-        text.className = "link-card-text";
-        for (const [className, value] of [
-            ["link-card-site", preview.siteName],
-            ["link-card-title", preview.title],
-            ["link-card-desc", preview.description],
-        ]) {
-            if (!value)
-                continue;
-            const line = document.createElement("span");
-            line.className = className;
-            line.textContent = value;
-            text.appendChild(line);
-        }
-        card.appendChild(text);
+        if (preview)
+            fillPreviewCard(card, preview);
+        else
+            fillBasicCard(card, url);
         card.hidden = false;
         if (nearBottom)
             chat.scrollTop = chat.scrollHeight;
     });
+}
+// The page's own preview: its picture, site, title and description.
+function fillPreviewCard(card, preview) {
+    if (preview.image) {
+        const thumb = document.createElement("img");
+        thumb.className = "link-card-thumb";
+        thumb.src = preview.image;
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        thumb.referrerPolicy = "no-referrer";
+        // Many sites refuse hotlinked images -- fall back to a text-only card,
+        // or to the basic one if there's no title to show either.
+        thumb.addEventListener("error", () => {
+            thumb.remove();
+            if (!preview.title)
+                fillBasicCard(card, preview.url);
+        });
+        card.appendChild(thumb);
+    }
+    const text = document.createElement("div");
+    text.className = "link-card-text";
+    for (const [className, value] of [
+        ["link-card-site", preview.siteName],
+        ["link-card-title", preview.title],
+        ["link-card-desc", preview.description],
+    ]) {
+        if (!value)
+            continue;
+        const line = document.createElement("span");
+        line.className = className;
+        line.textContent = value;
+        text.appendChild(line);
+    }
+    card.appendChild(text);
+}
+// For a page that can't be previewed -- plenty of sites turn away automated
+// requests, so the bridge never sees their preview tags -- the site's name,
+// with its icon when it has one. The icon loads straight from the site,
+// like any picture in an answer.
+function fillBasicCard(card, url) {
+    let site;
+    try {
+        site = new URL(url);
+    }
+    catch {
+        card.remove();
+        return;
+    }
+    const icon = document.createElement("img");
+    icon.className = "link-card-icon";
+    icon.src = `${site.origin}/favicon.ico`;
+    icon.alt = "";
+    icon.referrerPolicy = "no-referrer";
+    icon.addEventListener("error", () => icon.remove());
+    const text = document.createElement("div");
+    text.className = "link-card-text";
+    const name = document.createElement("span");
+    name.className = "link-card-title";
+    name.textContent = site.hostname.replace(/^www\./, "");
+    text.appendChild(name);
+    card.classList.add("is-basic");
+    card.replaceChildren(icon, text);
 }
 function addMessage(role, message, extraClass = "") {
     const wrap = document.createElement("div");
