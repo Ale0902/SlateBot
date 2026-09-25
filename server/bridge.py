@@ -61,9 +61,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # environment variables win over it.
 load_dotenv(os.path.join(ROOT, '.env'))
 
-# The remote desktop is reachable through Tailscale, so a local .env is not
-# required for the normal setup. Individual service URLs still override this.
-SLATEBOT_HOST = os.getenv('SLATEBOT_HOST', '100.113.193.53')
+# The Linux VM hosts Ollama and SearXNG, so a local .env is not required for
+# the normal setup. Individual service URLs still override this.
+SLATEBOT_HOST = os.getenv('SLATEBOT_HOST', '10.7.163.103')
 OLLAMA_URL = os.getenv('OLLAMA_URL', f'http://{SLATEBOT_HOST}:11434').rstrip('/')
 # Passed on to the tool server, so both always use the same one.
 SEARXNG_URL = os.getenv('SEARXNG_URL', f'http://{SLATEBOT_HOST}:8080')

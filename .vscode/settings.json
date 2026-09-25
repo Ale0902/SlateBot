@@ -1,3 +1,4 @@
 {
-    "livePreview.defaultPreviewPath": "/retro/index.html"
+    "livePreview.defaultPreviewPath": "/retro/index.html",
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }

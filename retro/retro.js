@@ -317,6 +317,147 @@
     }
   }
 
+  // ---- Desktop icons ----
+  // They behave like XP icons: a click selects one, a click on the empty
+  // desktop clears that, and dragging one drops it onto the nearest free
+  // grid spot, which is remembered. They start in a column at the top left.
+  // Double-clicking opens it (the window above; the Recycle Bin in main.js).
+  const desktop = $("desktop");
+  const desktopIcons = desktop ? Array.from(desktop.querySelectorAll(".desktop-icon")) : [];
+  if (desktop && desktopIcons.length) {
+    const ICON_POS_KEY = "celta-chat.retroIconPositions";
+    const GRID_X = 100;
+    const GRID_Y = 100;
+    const MARGIN = 8;
+    const DRAG_THRESHOLD = 4; // pixels, as in Windows
+    let iconDrag = null;
+
+    let positions = {};
+    try {
+      const saved = JSON.parse(load(ICON_POS_KEY, "{}"));
+      if (saved && typeof saved === "object") positions = saved;
+    } catch {
+      // Damaged saved positions just leave the icons in their starting spots.
+    }
+    save("celta-chat.retroIconPos", null); // from when there was one icon
+
+    function clampIcon(icon, left, top) {
+      const maxLeft = Math.max(MARGIN, desktop.clientWidth - icon.offsetWidth - MARGIN);
+      const maxTop = Math.max(MARGIN, desktop.clientHeight - icon.offsetHeight - MARGIN);
+      return {
+        left: Math.min(Math.max(MARGIN, left), maxLeft),
+        top: Math.min(Math.max(MARGIN, top), maxTop),
+      };
+    }
+
+    function placeIcon(icon, left, top) {
+      const pos = clampIcon(icon, left, top);
+      icon.style.left = `${pos.left}px`;
+      icon.style.top = `${pos.top}px`;
+      return pos;
+    }
+
+    function iconPos(icon) {
+      return { left: parseFloat(icon.style.left) || MARGIN, top: parseFloat(icon.style.top) || MARGIN };
+    }
+
+    function snapToGrid(left, top) {
+      return {
+        left: MARGIN + Math.round((left - MARGIN) / GRID_X) * GRID_X,
+        top: MARGIN + Math.round((top - MARGIN) / GRID_Y) * GRID_Y,
+      };
+    }
+
+    function spotTaken(icon, pos) {
+      return desktopIcons.some((other) => {
+        if (other === icon) return false;
+        const at = iconPos(other);
+        return Math.abs(at.left - pos.left) < GRID_X / 2 && Math.abs(at.top - pos.top) < GRID_Y / 2;
+      });
+    }
+
+    function selectIcon(icon) {
+      for (const each of desktopIcons) each.classList.toggle("is-selected", each === icon);
+    }
+
+    desktopIcons.forEach((icon, index) => {
+      const saved = positions[icon.id];
+      if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) placeIcon(icon, saved.left, saved.top);
+      else placeIcon(icon, MARGIN, MARGIN + index * GRID_Y);
+
+      icon.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        selectIcon(icon);
+        icon.focus();
+        const rect = icon.getBoundingClientRect();
+        const desktopRect = desktop.getBoundingClientRect();
+        iconDrag = {
+          icon,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          from: iconPos(icon),
+          offsetX: event.clientX - rect.left + desktopRect.left,
+          offsetY: event.clientY - rect.top + desktopRect.top,
+          moved: false,
+        };
+        icon.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+
+      icon.addEventListener("pointermove", (event) => {
+        if (!iconDrag || iconDrag.icon !== icon || iconDrag.pointerId !== event.pointerId) return;
+        if (!iconDrag.moved) {
+          const distance = Math.hypot(event.clientX - iconDrag.startX, event.clientY - iconDrag.startY);
+          if (distance < DRAG_THRESHOLD) return;
+          iconDrag.moved = true;
+          icon.classList.add("is-dragging");
+        }
+        placeIcon(icon, event.clientX - iconDrag.offsetX, event.clientY - iconDrag.offsetY);
+      });
+
+      function stopIconDrag(event) {
+        if (!iconDrag || iconDrag.icon !== icon || iconDrag.pointerId !== event.pointerId) return;
+        const { moved, from } = iconDrag;
+        iconDrag = null;
+        icon.releasePointerCapture(event.pointerId);
+        icon.classList.remove("is-dragging");
+        if (!moved) return;
+        const current = iconPos(icon);
+        const snapped = snapToGrid(current.left, current.top);
+        let pos = clampIcon(icon, snapped.left, snapped.top);
+        // Dropped on another icon: it goes back where it came from.
+        if (spotTaken(icon, pos)) pos = from;
+        positions[icon.id] = placeIcon(icon, pos.left, pos.top);
+        save(ICON_POS_KEY, JSON.stringify(positions));
+      }
+
+      icon.addEventListener("pointerup", stopIconDrag);
+      icon.addEventListener("pointercancel", stopIconDrag);
+
+      // Enter opens it too, as on a real desktop.
+      icon.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        icon.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+      });
+
+      icon.addEventListener("blur", () => icon.classList.remove("is-selected"));
+    });
+
+    desktop.addEventListener("pointerdown", (event) => {
+      if (!event.target.closest(".desktop-icon")) selectIcon(null);
+    });
+
+    // Keep them on screen when the browser window shrinks.
+    window.addEventListener("resize", () => {
+      for (const icon of desktopIcons) {
+        const at = iconPos(icon);
+        placeIcon(icon, at.left, at.top);
+      }
+    });
+  }
+
   // ---- Message box ----
   // The text sits centered in a taller frame (see .input-wrap in retro.css);
   // a click anywhere in the frame, around it, still types in it.

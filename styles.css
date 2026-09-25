@@ -255,10 +255,15 @@ button, textarea {
   cursor: pointer;
 }
 
-.context-menu button:hover,
-.context-menu button:focus-visible {
+.context-menu button:hover:not(:disabled),
+.context-menu button:focus-visible:not(:disabled) {
   outline: none;
   background: rgba(74, 155, 217, 0.14);
+}
+
+.context-menu button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .profile-row {

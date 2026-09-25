@@ -51,6 +51,7 @@
           <!-- Filled in by retro.js with whichever icon was picked for it. -->
           <button type="button" class="buddy-icon icon-btn" id="botIconBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="botIconPicker" aria-label="Change Slate Bot's icon" title="Change Slate Bot's icon"></button>
           <span class="sn-label">Slate Bot</span>
+          <span class="bot-status" id="botStatus" role="status" aria-live="polite">Online</span>
           <div class="popover icon-picker bot-icon-picker" id="botIconPicker" role="dialog" aria-label="Choose Slate Bot's icon" hidden>
             <div class="popover-title">Choose Slate Bot's Icon</div>
             <div class="icon-grid" id="botIconGrid"></div>
@@ -146,9 +147,43 @@
         <path d="M11 20h10v3h4v3H7v-3h4z" fill="#c0c0c0" stroke="#3d3a2e"/>
       </svg>
     </span>
-    <span>Slate Bot</span>
+    <span class="desktop-icon-label">Slate Bot</span>
+  </button>
+  <!-- ../dist/main.js fills the bin and swaps in the full picture when it has chats. -->
+  <button type="button" class="desktop-icon recycle-icon" id="recycleBinIcon" aria-label="Open Recycle Bin">
+    <span class="desktop-icon-art" aria-hidden="true">
+      <svg class="bin-empty" viewBox="0 0 32 28" width="64" height="56" shape-rendering="crispEdges">
+        <path d="M8.5 5.5h15l-2 21h-11z" fill="#dfe8ee" stroke="#3d3a2e"/>
+        <path d="M11 8l1 16m4-16v16m5-16l-1 16" stroke="#9fb3c2" fill="none"/>
+        <rect x="7.5" y="3.5" width="17" height="2" fill="#c7d4de" stroke="#3d3a2e"/>
+      </svg>
+      <svg class="bin-full" viewBox="0 0 32 28" width="64" height="56" shape-rendering="crispEdges">
+        <path d="M8.5 5.5h15l-2 21h-11z" fill="#dfe8ee" stroke="#3d3a2e"/>
+        <path d="M11 8l1 16m4-16v16m5-16l-1 16" stroke="#9fb3c2" fill="none"/>
+        <path d="M9.5 3.5l5-3 3 2 4-1 2 3z" fill="#fff" stroke="#3d3a2e"/>
+        <path d="M13 1.5h4l-1 3h-3zm6 1h3v2h-3z" fill="#ffe45c" stroke="#3d3a2e"/>
+        <rect x="7.5" y="4.5" width="17" height="2" fill="#c7d4de" stroke="#3d3a2e"/>
+      </svg>
+    </span>
+    <span class="desktop-icon-label">Recycle Bin</span>
   </button>
 </main>
+
+<dialog class="about-dialog recycle-dialog" id="recycleBinDialog" aria-labelledby="recycleBinTitle">
+  <div class="about-titlebar">
+    <h2 id="recycleBinTitle">Recycle Bin</h2>
+    <button type="button" class="about-close" data-close aria-label="Close">×</button>
+  </div>
+  <div class="about-body recycle-body">
+    <p class="recycle-empty" id="recycleBinEmptyNote">The Recycle Bin is empty.</p>
+    <ul class="recycle-list" id="recycleBinList"></ul>
+  </div>
+  <div class="about-actions recycle-actions">
+    <span class="recycle-count" id="recycleBinCount"></span>
+    <button type="button" class="about-ok" id="recycleBinEmptyBtn">Empty Recycle Bin</button>
+    <button type="button" class="about-ok" data-close>Close</button>
+  </div>
+</dialog>
 
 <footer class="taskbar" id="taskbar">
   <button type="button" class="start-button" aria-label="Open Start menu">
