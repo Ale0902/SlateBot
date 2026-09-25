@@ -319,72 +319,123 @@
 
   // ---- Desktop icons ----
   // They behave like XP icons: a click selects one, a click on the empty
-  // desktop clears that, and dragging one drops it onto the nearest free
-  // grid spot, which is remembered. They start in a column at the top left.
-  // Double-clicking opens it (the window above; the Recycle Bin in main.js).
+  // desktop clears that, and they only ever sit in the cells of an invisible
+  // grid. A dragged one follows the pointer exactly, then slides into the
+  // cell its middle is over when let go -- or the nearest free cell, if
+  // another icon is already there. They start in a column at the top left,
+  // in page order, and the cells they're in are remembered. Double-clicking
+  // opens one (the window above; the Recycle Bin in main.js).
   const desktop = $("desktop");
   const desktopIcons = desktop ? Array.from(desktop.querySelectorAll(".desktop-icon")) : [];
   if (desktop && desktopIcons.length) {
-    const ICON_POS_KEY = "celta-chat.retroIconPositions";
-    const GRID_X = 100;
-    const GRID_Y = 100;
+    const ICON_CELLS_KEY = "celta-chat.retroIconCells2";
+    const CELL_WIDTH = 124; // fits the widest label, "Recycle Bin"
+    const CELL_HEIGHT = 108;
     const MARGIN = 8;
     const DRAG_THRESHOLD = 4; // pixels, as in Windows
     let iconDrag = null;
+    // The cell each icon was put in, and the cell it's shown in -- the same,
+    // unless the browser window got too small for it.
+    const wanted = new Map();
+    const cells = new Map();
 
-    let positions = {};
-    try {
-      const saved = JSON.parse(load(ICON_POS_KEY, "{}"));
-      if (saved && typeof saved === "object") positions = saved;
-    } catch {
-      // Damaged saved positions just leave the icons in their starting spots.
-    }
-    save("celta-chat.retroIconPos", null); // from when there was one icon
+    // Positions saved before there was a grid, and cells saved from before
+    // the Recycle Bin started above Slate Bot.
+    save("celta-chat.retroIconPos", null);
+    save("celta-chat.retroIconPositions", null);
+    save("celta-chat.retroIconCells", null);
 
-    function clampIcon(icon, left, top) {
-      const maxLeft = Math.max(MARGIN, desktop.clientWidth - icon.offsetWidth - MARGIN);
-      const maxTop = Math.max(MARGIN, desktop.clientHeight - icon.offsetHeight - MARGIN);
+    function gridSize() {
       return {
-        left: Math.min(Math.max(MARGIN, left), maxLeft),
-        top: Math.min(Math.max(MARGIN, top), maxTop),
+        cols: Math.max(1, Math.floor((desktop.clientWidth - MARGIN) / CELL_WIDTH)),
+        rows: Math.max(1, Math.floor((desktop.clientHeight - MARGIN) / CELL_HEIGHT)),
       };
     }
 
-    function placeIcon(icon, left, top) {
-      const pos = clampIcon(icon, left, top);
-      icon.style.left = `${pos.left}px`;
-      icon.style.top = `${pos.top}px`;
-      return pos;
-    }
-
-    function iconPos(icon) {
-      return { left: parseFloat(icon.style.left) || MARGIN, top: parseFloat(icon.style.top) || MARGIN };
-    }
-
-    function snapToGrid(left, top) {
+    function clampCell(cell) {
+      const { cols, rows } = gridSize();
       return {
-        left: MARGIN + Math.round((left - MARGIN) / GRID_X) * GRID_X,
-        top: MARGIN + Math.round((top - MARGIN) / GRID_Y) * GRID_Y,
+        col: Math.min(Math.max(0, cell.col), cols - 1),
+        row: Math.min(Math.max(0, cell.row), rows - 1),
       };
     }
 
-    function spotTaken(icon, pos) {
-      return desktopIcons.some((other) => {
-        if (other === icon) return false;
-        const at = iconPos(other);
-        return Math.abs(at.left - pos.left) < GRID_X / 2 && Math.abs(at.top - pos.top) < GRID_Y / 2;
-      });
+    // The cell under a point on the desktop.
+    function cellAt(x, y) {
+      return clampCell({ col: Math.floor((x - MARGIN) / CELL_WIDTH), row: Math.floor((y - MARGIN) / CELL_HEIGHT) });
+    }
+
+    function cellTaken(icon, cell) {
+      for (const [other, at] of cells) {
+        if (other !== icon && at.col === cell.col && at.row === cell.row) return true;
+      }
+      return false;
+    }
+
+    // The free cell closest to the one asked for -- that one, if it's free.
+    function nearestFreeCell(icon, target) {
+      const { cols, rows } = gridSize();
+      let best = null;
+      let bestDistance = Infinity;
+      for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < rows; row++) {
+          if (cellTaken(icon, { col, row })) continue;
+          const distance = (col - target.col) ** 2 + (row - target.row) ** 2;
+          if (distance < bestDistance) {
+            best = { col, row };
+            bestDistance = distance;
+          }
+        }
+      }
+      return best ?? target; // every cell is taken -- share it
+    }
+
+    // Centered across its cell and at the cell's top, as Windows lays them out.
+    function showInCell(icon, cell) {
+      icon.style.left = `${MARGIN + cell.col * CELL_WIDTH + (CELL_WIDTH - icon.offsetWidth) / 2}px`;
+      icon.style.top = `${MARGIN + cell.row * CELL_HEIGHT}px`;
+    }
+
+    function putInCell(icon, target) {
+      const cell = nearestFreeCell(icon, clampCell(target));
+      cells.set(icon, cell);
+      showInCell(icon, cell);
+      return cell;
+    }
+
+    function layoutIcons() {
+      cells.clear();
+      for (const icon of desktopIcons) putInCell(icon, wanted.get(icon));
+    }
+
+    function saveCells() {
+      const saved = {};
+      for (const [icon, cell] of wanted) saved[icon.id] = cell;
+      save(ICON_CELLS_KEY, JSON.stringify(saved));
     }
 
     function selectIcon(icon) {
       for (const each of desktopIcons) each.classList.toggle("is-selected", each === icon);
     }
 
+    let saved = {};
+    try {
+      const parsed = JSON.parse(load(ICON_CELLS_KEY, "{}"));
+      if (parsed && typeof parsed === "object") saved = parsed;
+    } catch {
+      // Damaged saved cells just leave the icons in their starting ones.
+    }
     desktopIcons.forEach((icon, index) => {
-      const saved = positions[icon.id];
-      if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) placeIcon(icon, saved.left, saved.top);
-      else placeIcon(icon, MARGIN, MARGIN + index * GRID_Y);
+      const cell = saved[icon.id];
+      const valid = cell && Number.isInteger(cell.col) && Number.isInteger(cell.row);
+      wanted.set(icon, valid ? cell : { col: 0, row: index });
+    });
+    layoutIcons();
+    // The pixel font changes how wide the labels are once it loads, which
+    // changes how each icon is centered in its cell.
+    document.fonts?.ready.then(layoutIcons);
 
+    for (const icon of desktopIcons) {
       icon.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) return;
         selectIcon(icon);
@@ -396,15 +447,16 @@
           pointerId: event.pointerId,
           startX: event.clientX,
           startY: event.clientY,
-          from: iconPos(icon),
           offsetX: event.clientX - rect.left + desktopRect.left,
           offsetY: event.clientY - rect.top + desktopRect.top,
           moved: false,
+          cell: cells.get(icon),
         };
         icon.setPointerCapture(event.pointerId);
         event.preventDefault();
       });
 
+      // While held it follows the pointer exactly; it only snaps when dropped.
       icon.addEventListener("pointermove", (event) => {
         if (!iconDrag || iconDrag.icon !== icon || iconDrag.pointerId !== event.pointerId) return;
         if (!iconDrag.moved) {
@@ -413,23 +465,27 @@
           iconDrag.moved = true;
           icon.classList.add("is-dragging");
         }
-        placeIcon(icon, event.clientX - iconDrag.offsetX, event.clientY - iconDrag.offsetY);
+        const maxLeft = Math.max(0, desktop.clientWidth - icon.offsetWidth);
+        const maxTop = Math.max(0, desktop.clientHeight - icon.offsetHeight);
+        const left = Math.min(Math.max(0, event.clientX - iconDrag.offsetX), maxLeft);
+        const top = Math.min(Math.max(0, event.clientY - iconDrag.offsetY), maxTop);
+        icon.style.left = `${left}px`;
+        icon.style.top = `${top}px`;
+        iconDrag.cell = cellAt(left + icon.offsetWidth / 2, top + icon.offsetHeight / 2);
       });
 
       function stopIconDrag(event) {
         if (!iconDrag || iconDrag.icon !== icon || iconDrag.pointerId !== event.pointerId) return;
-        const { moved, from } = iconDrag;
+        const { moved, cell } = iconDrag;
         iconDrag = null;
         icon.releasePointerCapture(event.pointerId);
         icon.classList.remove("is-dragging");
         if (!moved) return;
-        const current = iconPos(icon);
-        const snapped = snapToGrid(current.left, current.top);
-        let pos = clampIcon(icon, snapped.left, snapped.top);
-        // Dropped on another icon: it goes back where it came from.
-        if (spotTaken(icon, pos)) pos = from;
-        positions[icon.id] = placeIcon(icon, pos.left, pos.top);
-        save(ICON_POS_KEY, JSON.stringify(positions));
+        // Slides the last few pixels into the cell, rather than jumping.
+        icon.classList.add("is-snapping");
+        wanted.set(icon, putInCell(icon, cell));
+        saveCells();
+        window.setTimeout(() => icon.classList.remove("is-snapping"), 150);
       }
 
       icon.addEventListener("pointerup", stopIconDrag);
@@ -443,19 +499,15 @@
       });
 
       icon.addEventListener("blur", () => icon.classList.remove("is-selected"));
-    });
+    }
 
     desktop.addEventListener("pointerdown", (event) => {
       if (!event.target.closest(".desktop-icon")) selectIcon(null);
     });
 
-    // Keep them on screen when the browser window shrinks.
-    window.addEventListener("resize", () => {
-      for (const icon of desktopIcons) {
-        const at = iconPos(icon);
-        placeIcon(icon, at.left, at.top);
-      }
-    });
+    // A smaller browser window has fewer cells; icons that no longer fit move
+    // to the nearest one that does, and go back once there's room again.
+    window.addEventListener("resize", layoutIcons);
   }
 
   // ---- Message box ----

@@ -638,6 +638,7 @@ const CONFIG = {
 const MAX_HISTORY_MESSAGES = 16;
 // Chats are saved in this browser only. Oldest drop off past the cap.
 const CHATS_KEY = "celta-chat.chats";
+const RECYCLE_BIN_KEY = "celta-chat.recycleBin";
 const MAX_SAVED_CHATS = 50;
 const MAX_TITLE_LENGTH = 60;
 const GREETING = "Hi! How can I help you today?";
@@ -672,39 +673,58 @@ const sendBtn = $("sendBtn");
 const suggestions = $("suggestions");
 const recents = $("recents");
 const chatTitle = $("chatTitle");
+const botStatus = document.getElementById("botStatus");
 const newChatBtn = $("newChatBtn");
 const workspace = $("workspace");
 const attachBtn = $("attachBtn");
 const fileInput = $("fileInput");
 const attachmentPreview = $("attachmentPreview");
-function loadChats() {
+function setBotStatus(status) {
+    if (botStatus)
+        botStatus.textContent = status;
+}
+function readChatList(key) {
     try {
-        const parsed = JSON.parse(localStorage.getItem(CHATS_KEY) ?? "[]");
+        const parsed = JSON.parse(localStorage.getItem(key) ?? "[]");
         if (!Array.isArray(parsed))
             return [];
         return parsed
             .filter((c) => typeof c?.id === "string" && typeof c.title === "string" && Array.isArray(c.messages))
-            .map((c) => ({ ...c, seenUrls: Array.isArray(c.seenUrls) ? c.seenUrls : [], updatedAt: Number(c.updatedAt) || 0 }))
-            .sort((a, b) => b.updatedAt - a.updatedAt);
+            .map((c) => ({ ...c, seenUrls: Array.isArray(c.seenUrls) ? c.seenUrls : [], updatedAt: Number(c.updatedAt) || 0 }));
     }
     catch {
         return [];
     }
 }
-function saveChats() {
-    chats = chats.slice(0, MAX_SAVED_CHATS);
-    // If storage is full, drop the oldest chats until it fits.
-    while (chats.length) {
+function loadChats() {
+    return readChatList(CHATS_KEY).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+function loadRecycleBin() {
+    return readChatList(RECYCLE_BIN_KEY)
+        .map((c) => ({ ...c, deletedAt: Number(c.deletedAt) || 0 }))
+        .sort((a, b) => b.deletedAt - a.deletedAt);
+}
+// Saves a newest-first list, keeping what fits: if storage is full, the
+// oldest entries are dropped until it does. Returns what was kept.
+function persistList(key, list) {
+    list = list.slice(0, MAX_SAVED_CHATS);
+    for (;;) {
         try {
-            localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
-            return;
+            localStorage.setItem(key, JSON.stringify(list));
+            return list;
         }
         catch {
-            if (chats.length === 1)
-                return; // storage blocked entirely -- chats just won't persist
-            chats = chats.slice(0, -1);
+            if (list.length <= 1)
+                return list; // storage blocked entirely -- it just won't persist
+            list = list.slice(0, -1);
         }
     }
+}
+function saveChats() {
+    chats = persistList(CHATS_KEY, chats);
+}
+function saveRecycleBin() {
+    recycleBin = persistList(RECYCLE_BIN_KEY, recycleBin);
 }
 function newChat() {
     return {
@@ -722,6 +742,8 @@ function makeTitle(text) {
 // Newest first. A chat is only saved once it has a message, so clicking
 // "New chat" repeatedly doesn't fill Recents with empty entries.
 let chats = loadChats();
+// Deleted chats, newest deletion first.
+let recycleBin = loadRecycleBin();
 // The site always opens on a fresh chat (the start view); earlier chats are
 // one click away in Recents.
 let activeChat = newChat();
@@ -906,6 +928,12 @@ function renderRecents() {
         item.addEventListener("click", () => openChat(saved));
         // The first click of the two already opened it -- rename it in place.
         item.addEventListener("dblclick", () => startRename());
+        item.addEventListener("keydown", (e) => {
+            if (e.key !== "Delete")
+                return;
+            e.preventDefault();
+            deleteChat(saved);
+        });
         // Also covers the keyboard's menu key and Shift+F10, which have no
         // pointer position -- the menu then opens at the item.
         item.addEventListener("contextmenu", (e) => {
@@ -976,6 +1004,11 @@ renameMenuItem.type = "button";
 renameMenuItem.setAttribute("role", "menuitem");
 renameMenuItem.textContent = "Rename";
 contextMenu.appendChild(renameMenuItem);
+const deleteMenuItem = document.createElement("button");
+deleteMenuItem.type = "button";
+deleteMenuItem.setAttribute("role", "menuitem");
+deleteMenuItem.textContent = "Delete";
+contextMenu.appendChild(deleteMenuItem);
 document.body.appendChild(contextMenu);
 let menuChat = null;
 // The chat being renamed in Recents, and its text box -- kept so a redraw
@@ -983,6 +1016,9 @@ let menuChat = null;
 let recentRename = null;
 function openContextMenu(target, x, y) {
     menuChat = target;
+    // A chat still waiting on a reply can't go yet -- the reply would bring it back.
+    deleteMenuItem.disabled = pending?.chat === target;
+    deleteMenuItem.title = deleteMenuItem.disabled ? "Wait for the reply to finish" : "";
     contextMenu.hidden = false;
     // Keep it on screen near the edges.
     const { width, height } = contextMenu.getBoundingClientRect();
@@ -1000,6 +1036,132 @@ renameMenuItem.addEventListener("click", () => {
     if (target)
         startRecentRename(target);
 });
+deleteMenuItem.addEventListener("click", () => {
+    const target = menuChat;
+    closeContextMenu();
+    if (target)
+        deleteChat(target);
+    input.focus();
+});
+// ---- Deleting: a deleted chat goes to the Recycle Bin, where it can be
+// restored, or deleted again to be gone for good ----
+function deleteChat(target) {
+    if (pending?.chat === target || !chats.includes(target))
+        return;
+    chats = chats.filter((c) => c !== target);
+    saveChats();
+    recycleBin = [{ ...target, deletedAt: Date.now() }, ...recycleBin];
+    saveRecycleBin();
+    drafts.delete(target.id);
+    draftAttachments.delete(target.id);
+    if (recentRename?.target === target)
+        recentRename = null;
+    if (renaming?.target === target)
+        finishRename(false);
+    if (target === activeChat)
+        openBlankChat();
+    else
+        renderRecents();
+    renderRecycleBin();
+}
+function restoreChat(id) {
+    const entry = recycleBin.find((c) => c.id === id);
+    if (!entry)
+        return;
+    recycleBin = recycleBin.filter((c) => c !== entry);
+    saveRecycleBin();
+    const { deletedAt: _, ...restored } = entry;
+    // Back in its old place: Recents is ordered by last activity.
+    chats = [...chats, restored].sort((a, b) => b.updatedAt - a.updatedAt);
+    saveChats();
+    renderRecents();
+    updateSuggestions();
+    renderRecycleBin();
+}
+function purgeChat(id) {
+    const entry = recycleBin.find((c) => c.id === id);
+    if (!entry)
+        return;
+    if (!confirm(`Are you sure you want to permanently delete "${entry.title}"?`))
+        return;
+    recycleBin = recycleBin.filter((c) => c !== entry);
+    saveRecycleBin();
+    renderRecycleBin();
+}
+function emptyRecycleBin() {
+    if (!recycleBin.length)
+        return;
+    const what = recycleBin.length === 1 ? `"${recycleBin[0].title}"` : `these ${recycleBin.length} chats`;
+    if (!confirm(`Are you sure you want to permanently delete ${what}?`))
+        return;
+    recycleBin = [];
+    saveRecycleBin();
+    renderRecycleBin();
+}
+// The Recycle Bin's icon and window only exist in the retro theme; in the
+// other theme deleted chats still wait in the bin, to restore from there.
+const recycleBinIcon = document.getElementById("recycleBinIcon");
+const recycleBinDialog = document.getElementById("recycleBinDialog");
+const recycleBinList = document.getElementById("recycleBinList");
+const recycleBinEmptyNote = document.getElementById("recycleBinEmptyNote");
+const recycleBinEmptyBtn = document.getElementById("recycleBinEmptyBtn");
+const recycleBinCount = document.getElementById("recycleBinCount");
+function renderRecycleBin() {
+    const full = recycleBin.length > 0;
+    recycleBinIcon?.classList.toggle("is-full", full);
+    recycleBinIcon?.setAttribute("aria-label", `Open Recycle Bin (${full ? `${recycleBin.length} deleted chat${recycleBin.length === 1 ? "" : "s"}` : "empty"})`);
+    if (recycleBinEmptyBtn)
+        recycleBinEmptyBtn.disabled = !full;
+    if (recycleBinEmptyNote)
+        recycleBinEmptyNote.hidden = full;
+    if (recycleBinCount) {
+        recycleBinCount.textContent = `${recycleBin.length} object${recycleBin.length === 1 ? "" : "s"}`;
+    }
+    if (!recycleBinList)
+        return;
+    recycleBinList.innerHTML = "";
+    const when = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+    for (const entry of recycleBin) {
+        const row = document.createElement("li");
+        row.className = "recycle-item";
+        const info = document.createElement("div");
+        info.className = "recycle-info";
+        const title = document.createElement("span");
+        title.className = "recycle-title";
+        title.textContent = entry.title;
+        title.title = entry.title;
+        const date = document.createElement("span");
+        date.className = "recycle-date";
+        date.textContent = `Deleted ${when.format(entry.deletedAt)}`;
+        info.append(title, date);
+        const restore = document.createElement("button");
+        restore.type = "button";
+        restore.className = "about-ok recycle-btn";
+        restore.textContent = "Restore";
+        restore.setAttribute("aria-label", `Restore "${entry.title}"`);
+        restore.addEventListener("click", () => restoreChat(entry.id));
+        const purge = document.createElement("button");
+        purge.type = "button";
+        purge.className = "about-ok recycle-btn";
+        purge.textContent = "Delete";
+        purge.setAttribute("aria-label", `Permanently delete "${entry.title}"`);
+        purge.addEventListener("click", () => purgeChat(entry.id));
+        row.append(info, restore, purge);
+        recycleBinList.appendChild(row);
+    }
+}
+if (recycleBinIcon && recycleBinDialog) {
+    recycleBinIcon.addEventListener("dblclick", () => {
+        renderRecycleBin();
+        if (!recycleBinDialog.open)
+            recycleBinDialog.showModal();
+    });
+    recycleBinEmptyBtn?.addEventListener("click", emptyRecycleBin);
+    recycleBinDialog
+        .querySelectorAll("[data-close]")
+        .forEach((close) => close.addEventListener("click", () => recycleBinDialog.close()));
+}
+renderRecycleBin();
 document.addEventListener("pointerdown", (e) => {
     if (!contextMenu.hidden && !contextMenu.contains(e.target))
         closeContextMenu();
@@ -1390,10 +1552,14 @@ async function send(raw) {
     if (themePicker)
         themePicker.disabled = true;
     const typing = showTyping();
+    setBotStatus("Thinking…");
     pending = { chat: target, typing };
     const startedAt = performance.now();
     try {
-        const result = await getReply(text, image?.base64 ?? null, priorMessages, new Set(target.seenUrls), (status) => setTypingStatus(typing, status));
+        const result = await getReply(text, image?.base64 ?? null, priorMessages, new Set(target.seenUrls), (status) => {
+            setTypingStatus(typing, status);
+            setBotStatus(status);
+        });
         const reply = {
             role: "assistant",
             content: result.answer,
@@ -1424,6 +1590,7 @@ async function send(raw) {
         }
     }
     finally {
+        setBotStatus("Online");
         pending = null;
         busy = false;
         sendBtn.disabled = false;
@@ -1474,11 +1641,12 @@ suggestions.querySelectorAll(".chip").forEach((c) => c.addEventListener("click",
 // The blank chat "New chat" opens. Reused until something is sent in it, so
 // clicking away and back keeps its draft instead of starting another one.
 let blankChat = chats.includes(activeChat) ? null : activeChat;
-newChatBtn.addEventListener("click", () => {
+function openBlankChat() {
     if (!blankChat || chats.includes(blankChat))
         blankChat = newChat();
     openChat(blankChat);
-});
+}
+newChatBtn.addEventListener("click", openBlankChat);
 // ---- Sidebar collapse ----
 const SIDEBAR_KEY = "celta-chat.sidebarCollapsed";
 const app = document.querySelector(".app");

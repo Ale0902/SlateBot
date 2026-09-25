@@ -359,7 +359,7 @@ textarea,
   display: grid;
   place-items: center;
   width: 68px;
-  height: 60px;
+  height: 64px;
 }
 
 /* retro.js places each icon on the desktop's grid, top left first. */
@@ -405,6 +405,16 @@ textarea,
 
 .desktop-icon.is-selected .desktop-icon-art {
   filter: sepia(1) hue-rotate(180deg) saturate(3) brightness(0.8);
+}
+
+.desktop-icon.is-snapping {
+  transition: left 120ms ease-out, top 120ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-icon.is-snapping {
+    transition: none;
+  }
 }
 
 .desktop-icon.is-dragging {
