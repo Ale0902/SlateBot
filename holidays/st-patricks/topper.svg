@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- A leprechaun's hat. -->
+  <ellipse cx="24" cy="33.5" rx="20" ry="4.5" fill="#137a3f" stroke="#7ee0a1" stroke-width="0.7"/>
+  <path d="M12 33L14.5 8H33.5L36 33A12 2.6 0 0 1 12 33Z" fill="#1f9d55" stroke="#7ee0a1" stroke-width="0.7" stroke-linejoin="round"/>
+  <ellipse cx="24" cy="8" rx="9.5" ry="2.4" fill="#2ecc71"/>
+  <path d="M13.3 24.5H34.7L35.3 30.5H12.7Z" fill="#1a1a1a"/>
+  <rect x="20" y="23.5" width="8" height="8" rx="1" fill="none" stroke="#f2c94c" stroke-width="2"/>
+  <path d="M17 11L15.6 22" stroke="#7ee0a1" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+</svg>

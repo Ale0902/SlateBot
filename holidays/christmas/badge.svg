@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- A sprig of holly. -->
+  <g fill="#2e9e5b" stroke="#16522f" stroke-width="0.8" stroke-linejoin="round">
+    <path d="M16 16C12 11 6 10 2 12 3.5 13.5 3 15 4.5 16 4 17.5 5.5 19 7 18.5 8 20 10 20.5 11.5 19.5 13 19.5 15 18 16 16Z"/>
+    <path d="M16 16C20 11 26 10 30 12 28.5 13.5 29 15 27.5 16 28 17.5 26.5 19 25 18.5 24 20 22 20.5 20.5 19.5 19 19.5 17 18 16 16Z"/>
+  </g>
+  <g fill="none" stroke="#1c6b3c" stroke-width="0.8">
+    <path d="M16 16Q9 13.5 3.5 12.5"/>
+    <path d="M16 16Q23 13.5 28.5 12.5"/>
+  </g>
+  <g fill="#e0303d" stroke="#8c1320" stroke-width="0.6">
+    <circle cx="13.4" cy="16.6" r="3.2"/>
+    <circle cx="18.6" cy="16.6" r="3.2"/>
+    <circle cx="16" cy="12.8" r="3.2"/>
+  </g>
+  <g fill="#fff" opacity="0.7">
+    <circle cx="12.4" cy="15.6" r="0.9"/>
+    <circle cx="17.6" cy="15.6" r="0.9"/>
+    <circle cx="15" cy="11.8" r="0.9"/>
+  </g>
+</svg>

@@ -1,10 +1,12 @@
 :root {
+  /* The accent as "r g b", for its see-through tints: rgb(var(--accent-rgb) / 0.08). */
+  --accent-rgb: 74 155 217;
   --bg: #06090d;
   --bg-elevated: #0d131a;
   --bg-soft: #111b26;
   --panel: #0f1720;
-  --line: rgba(74, 155, 217, 0.14);
-  --line-strong: rgba(74, 155, 217, 0.22);
+  --line: rgb(var(--accent-rgb) / 0.14);
+  --line-strong: rgb(var(--accent-rgb) / 0.22);
   --text: #edf5ff;
   --muted: #9db5cb;
   --muted-2: #7d93ae;
@@ -12,8 +14,8 @@
   --accent-strong: #8ac3ee;
   --accent-deep: #1f5f99;
   --sidebar-bg: rgba(9, 14, 19, 0.94);
-  --chip: rgba(74, 155, 217, 0.08);
-  --bubble-user: rgba(74, 155, 217, 0.12);
+  --chip: rgb(var(--accent-rgb) / 0.08);
+  --bubble-user: rgb(var(--accent-rgb) / 0.12);
   --bubble-assistant: transparent;
 }
 
@@ -104,7 +106,7 @@ button, textarea {
 
 .sidebar-toggle:hover {
   color: var(--text);
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
 }
 
 .brand-row {
@@ -149,7 +151,7 @@ button, textarea {
 
 .nav-item:hover,
 .nav-item.active {
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   border-color: var(--line);
   color: var(--text);
 }
@@ -198,7 +200,7 @@ button, textarea {
 }
 
 .recent-item:hover {
-  background: rgba(74, 155, 217, 0.05);
+  background: rgb(var(--accent-rgb) / 0.05);
   color: var(--text);
 }
 
@@ -209,7 +211,7 @@ button, textarea {
 }
 
 .recent-item.active {
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--text);
   border: 1px solid var(--line);
 }
@@ -218,7 +220,7 @@ button, textarea {
 .recent-item.recent-rename {
   width: 100%;
   border-color: var(--accent);
-  background: rgba(74, 155, 217, 0.1);
+  background: rgb(var(--accent-rgb) / 0.1);
   color: var(--text);
   font-family: inherit;
   outline: none;
@@ -258,7 +260,7 @@ button, textarea {
 .context-menu button:hover:not(:disabled),
 .context-menu button:focus-visible:not(:disabled) {
   outline: none;
-  background: rgba(74, 155, 217, 0.14);
+  background: rgb(var(--accent-rgb) / 0.14);
 }
 
 .context-menu button:disabled {
@@ -316,7 +318,7 @@ button, textarea {
   padding: 3px 9px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--muted);
   font-size: 12px;
   cursor: pointer;
@@ -415,7 +417,7 @@ button, textarea {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--text);
 }
 
@@ -486,7 +488,7 @@ button, textarea {
 .avatar-btn[aria-expanded="true"] {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 155, 217, 0.25);
+  box-shadow: 0 0 0 2px rgb(var(--accent-rgb) / 0.25);
 }
 
 .avatar-btn:hover::after {
@@ -536,7 +538,7 @@ button, textarea {
   max-width: 100%;
   padding: 6px 10px;
   border-radius: 10px;
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   border: 1px solid var(--line);
   color: var(--text);
   font-size: 13px;
@@ -556,19 +558,19 @@ button, textarea {
 .title-pill.editing {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(74, 155, 217, 0.25);
+  box-shadow: 0 0 0 2px rgb(var(--accent-rgb) / 0.25);
 }
 
 .title-pill.editing {
   min-width: 160px;
-  background: rgba(74, 155, 217, 0.14);
+  background: rgb(var(--accent-rgb) / 0.14);
   text-overflow: clip;
   cursor: text;
 }
 
 .share-btn {
   border: 1px solid var(--line);
-  background: rgba(74, 155, 217, 0.08);
+  background: rgb(var(--accent-rgb) / 0.08);
   color: var(--text);
   border-radius: 8px;
   padding: 7px 12px;
@@ -584,7 +586,7 @@ button, textarea {
 .theme-picker {
   appearance: none;
   border: 1px solid var(--line);
-  background: rgba(74, 155, 217, 0.08)
+  background: rgb(var(--accent-rgb) / 0.08)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%239db5cb' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     no-repeat right 8px center / 12px;
   color: var(--text);
@@ -665,7 +667,7 @@ button, textarea {
 }
 
 .msg.user .bubble {
-  background: linear-gradient(135deg, rgba(74, 155, 217, 0.18), rgba(31, 95, 153, 0.12));
+  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.18), rgba(31, 95, 153, 0.12));
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   padding: 12px 16px;
@@ -768,7 +770,7 @@ button, textarea {
 
 .msg .bubble a.link-card:hover {
   border-color: var(--line-strong);
-  background: rgba(74, 155, 217, 0.06);
+  background: rgb(var(--accent-rgb) / 0.06);
 }
 
 .msg .bubble .reply-time {
@@ -876,7 +878,7 @@ button, textarea {
 
 .chip {
   border: 1px solid var(--line);
-  background: rgba(74, 155, 217, 0.05);
+  background: rgb(var(--accent-rgb) / 0.05);
   color: var(--muted);
   padding: 8px 12px;
   border-radius: 10px;
@@ -886,7 +888,7 @@ button, textarea {
 
 .chip:hover {
   border-color: var(--line-strong);
-  background: rgba(74, 155, 217, 0.12);
+  background: rgb(var(--accent-rgb) / 0.12);
   color: var(--text);
 }
 
@@ -948,7 +950,7 @@ button, textarea {
   border-radius: 24px;
   padding: 13px 20px 13px 50px;
   border-color: var(--line-strong);
-  background: rgba(74, 155, 217, 0.06);
+  background: rgb(var(--accent-rgb) / 0.06);
 }
 
 .workspace.is-empty .composer .send {
@@ -983,7 +985,7 @@ textarea {
   max-height: 140px;
   min-height: 48px;
   border: 1px solid var(--line);
-  background: rgba(74, 155, 217, 0.04);
+  background: rgb(var(--accent-rgb) / 0.04);
   border-radius: 12px;
   padding: 12px 14px;
   color: var(--text);
@@ -996,7 +998,7 @@ textarea::placeholder {
 
 textarea:focus {
   border-color: var(--line-strong);
-  box-shadow: 0 0 0 1px rgba(74, 155, 217, 0.18);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.18);
 }
 
 button.send {
@@ -1007,7 +1009,7 @@ button.send {
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(74, 155, 217, 0.2);
+  box-shadow: 0 8px 18px rgb(var(--accent-rgb) / 0.2);
 }
 
 button.send:disabled {
@@ -1043,7 +1045,7 @@ button.send:disabled {
 }
 
 .attach-btn:hover {
-  background: rgba(74, 155, 217, 0.12);
+  background: rgb(var(--accent-rgb) / 0.12);
   color: var(--text);
 }
 

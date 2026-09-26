@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- A cluster of autumn leaves and an acorn. -->
+  <defs>
+    <g id="leaf">
+      <path d="M12 1L13.8 5.5 16.5 4.5 15.8 9 20.5 6.5 19.5 9.5 23 10.5 19.5 13.5 20.5 15.5 14.5 15 13 18.5H12.5V23H11.5V18.5H11L9.5 15 3.5 15.5 4.5 13.5 1 10.5 4.5 9.5 3.5 6.5 8.2 9 7.5 4.5 10.2 5.5Z" stroke="#000" stroke-opacity="0.3" stroke-width="0.5" stroke-linejoin="round"/>
+      <path d="M12 18.5V4M12 12.5L19 8M12 12.5L5 8M12 15L18 14.5M12 15L6 14.5" fill="none" stroke="#000" stroke-opacity="0.25" stroke-width="0.7"/>
+    </g>
+  </defs>
+  <use href="#leaf" fill="#f59f00" transform="translate(14 22) rotate(-35) scale(.9) translate(-12 -12)"/>
+  <use href="#leaf" fill="#c92a2a" transform="translate(33 21) rotate(28) scale(.9) translate(-12 -12)"/>
+  <use href="#leaf" fill="#e8590c" transform="translate(23 16) rotate(-4) scale(1.02) translate(-12 -12)"/>
+  <g transform="translate(24 28)">
+    <ellipse cy="4.6" rx="3.6" ry="4.4" fill="#c98a4b"/>
+    <path d="M-4.6 1.8Q-4.2-2.6 0-2.6 4.2-2.6 4.6 1.8Z" fill="#7a4b24"/>
+    <path d="M0-2.6V-4.6" stroke="#6b4423" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+</svg>

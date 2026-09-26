@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- A lit jack-o'-lantern. -->
+  <path d="M15 9.5Q15 5 18 3.5L19.2 5Q17 6.5 17.4 9.5Z" fill="#4a7a2b"/>
+  <ellipse cx="10.5" cy="19" rx="7.5" ry="10" fill="#e8700f"/>
+  <ellipse cx="21.5" cy="19" rx="7.5" ry="10" fill="#e8700f"/>
+  <ellipse cx="16" cy="19" rx="6.8" ry="10.4" fill="#ff8f2e"/>
+  <g fill="none" stroke="#b9530a" stroke-width="0.8" opacity="0.7">
+    <path d="M9.4 9.6Q5.5 19 9.4 28.4"/>
+    <path d="M22.6 9.6Q26.5 19 22.6 28.4"/>
+  </g>
+  <g fill="#ffd84d">
+    <path d="M9.5 17.5L12 13.5 14.5 17.5Z"/>
+    <path d="M17.5 17.5L20 13.5 22.5 17.5Z"/>
+    <path d="M9 21L11 23.5 13 22 16 24.5 19 22 21 23.5 23 21Q16 27.5 9 21Z"/>
+  </g>
+</svg>

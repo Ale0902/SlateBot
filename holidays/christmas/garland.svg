@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+  <!-- A string of lights, one swag per tile; each bulb's glow twinkles on
+       its own beat. -->
+  <style>
+    .glow { animation: twinkle 2.4s ease-in-out infinite; }
+    .b2 { animation-delay: -0.6s; }
+    .b3 { animation-delay: -1.5s; }
+    .b4 { animation-delay: -0.9s; }
+    @keyframes twinkle { 50% { opacity: 0.3; } }
+    @media (prefers-reduced-motion: reduce) { .glow { animation: none; } }
+  </style>
+  <defs>
+    <radialGradient id="red"><stop offset="0" stop-color="#ff6b6b" stop-opacity="0.75"/><stop offset="1" stop-color="#ff6b6b" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gold"><stop offset="0" stop-color="#ffd84d" stop-opacity="0.75"/><stop offset="1" stop-color="#ffd84d" stop-opacity="0"/></radialGradient>
+    <radialGradient id="green"><stop offset="0" stop-color="#5dea8f" stop-opacity="0.7"/><stop offset="1" stop-color="#5dea8f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="blue"><stop offset="0" stop-color="#6cc6ff" stop-opacity="0.75"/><stop offset="1" stop-color="#6cc6ff" stop-opacity="0"/></radialGradient>
+    <g id="bulb">
+      <rect x="-2.6" y="0" width="5.2" height="4.6" rx="1" fill="#34563f"/>
+      <path d="M0 3.6C4.6 3.6 5.6 10 3.6 14 2.6 16 -2.6 16 -3.6 14 -5.6 10 -4.6 3.6 0 3.6Z"/>
+      <ellipse cx="-1.4" cy="8.4" rx="1" ry="2.4" fill="#fff" opacity="0.55"/>
+    </g>
+  </defs>
+  <path d="M0 4Q80 26 160 4" fill="none" stroke="#3f6b50" stroke-width="2"/>
+  <g transform="translate(20 8.8) rotate(-12)">
+    <circle class="glow" cy="10" r="12" fill="url(#red)"/>
+    <use href="#bulb" fill="#ff4d4d"/>
+  </g>
+  <g transform="translate(60 14.3) rotate(8)">
+    <circle class="glow b2" cy="10" r="12" fill="url(#gold)"/>
+    <use href="#bulb" fill="#ffd34d"/>
+  </g>
+  <g transform="translate(100 14.3) rotate(-8)">
+    <circle class="glow b3" cy="10" r="12" fill="url(#green)"/>
+    <use href="#bulb" fill="#4dd97a"/>
+  </g>
+  <g transform="translate(140 8.8) rotate(12)">
+    <circle class="glow b4" cy="10" r="12" fill="url(#blue)"/>
+    <use href="#bulb" fill="#4db8ff"/>
+  </g>
+</svg>

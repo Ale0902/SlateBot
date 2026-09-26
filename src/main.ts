@@ -400,7 +400,7 @@ function addMessage(role: MessageRole, message: ChatMessage, extraClass = ""): v
 
 function renderChat(target: SavedChat): void {
   chat.innerHTML = "";
-  addMessage("bot", { role: "assistant", content: GREETING }, "greeting");
+  addMessage("bot", { role: "assistant", content: shownTheme.greeting ?? GREETING }, "greeting");
   target.messages.forEach((message) => addMessage(message.role === "user" ? "user" : "bot", message));
   if (pending?.chat === target) chat.appendChild(pending.typing);
   updateSuggestions();
@@ -1085,8 +1085,7 @@ async function send(raw: string): Promise<void> {
   draftAttachments.delete(target.id);
   resizeInput();
   sendBtn.disabled = true;
-  // Switching themes loads another page, which would drop this reply.
-  if (themePicker) themePicker.disabled = true;
+  lockOtherPages(true);
 
   const typing = showTyping();
   setBotStatus("Thinking…");
@@ -1131,7 +1130,7 @@ async function send(raw: string): Promise<void> {
     pending = null;
     busy = false;
     sendBtn.disabled = false;
-    if (themePicker) themePicker.disabled = false;
+    lockOtherPages(false);
     input.focus();
   }
 }
@@ -1373,42 +1372,373 @@ aboutBtn?.addEventListener("click", () => {
 // saved chat. To add one: build its page with the same element ids, set
 // data-theme-id on its <html>, add a <select id="themePicker"> somewhere,
 // and list it here. The first theme is the default, served at the root.
+//
+// Holidays dress up an existing page instead of being one: picking one puts
+// data-holiday on that page's <html> (styled in holidays/holidays.css) and
+// swaps its greeting, without loading anything. Automatic does the same
+// with whichever holiday is in season (see seasonsOf), and moves on to the
+// next when the season changes.
 interface Theme {
   id: string;
   name: string;
+  // Shown before the name in the menu.
+  icon?: string;
   // The page's folder, relative to the project root ("" for the root).
   path: string;
+  holiday?: boolean;
+  auto?: boolean;
+  // What the empty chat says, and the hint in the message box, while it's on.
+  greeting?: string;
+  placeholder?: string;
 }
 
 const THEMES: Theme[] = [
   { id: "modern", name: "Modern", path: "" },
   { id: "retro", name: "Retro IM", path: "retro/" },
+  { id: "auto", icon: "🗓️", name: "Automatic", path: "", auto: true },
+  // In calendar order.
+  {
+    id: "new-year",
+    icon: "🥂",
+    name: "New Year's",
+    path: "",
+    holiday: true,
+    greeting: "Happy New Year! How can I help you today?",
+    placeholder: "New year, new questions…",
+  },
+  {
+    id: "valentines",
+    icon: "💘",
+    name: "Valentine's Day",
+    path: "",
+    holiday: true,
+    greeting: "Happy Valentine's Day! How can I help you today?",
+    placeholder: "Type a sweet message…",
+  },
+  {
+    id: "st-patricks",
+    icon: "☘️",
+    name: "St. Patrick's Day",
+    path: "",
+    holiday: true,
+    greeting: "Happy St. Patrick's Day! How can I help you today?",
+    placeholder: "Feeling lucky? Ask away…",
+  },
+  {
+    id: "fourth-of-july",
+    icon: "🎆",
+    name: "Fourth of July",
+    path: "",
+    holiday: true,
+    greeting: "Happy Fourth of July! How can I help you today?",
+  },
+  {
+    id: "halloween",
+    icon: "🎃",
+    name: "Halloween",
+    path: "",
+    holiday: true,
+    greeting: "Happy Halloween! What can I conjure up for you?",
+    placeholder: "Ask me anything… if you dare",
+  },
+  {
+    id: "thanksgiving",
+    icon: "🦃",
+    name: "Thanksgiving",
+    path: "",
+    holiday: true,
+    greeting: "Happy Thanksgiving! How can I help you today?",
+    placeholder: "What's on your plate today?",
+  },
+  {
+    id: "hanukkah",
+    icon: "🕎",
+    name: "Hanukkah",
+    path: "",
+    holiday: true,
+    greeting: "Happy Hanukkah! How can I help you today?",
+  },
+  {
+    id: "christmas",
+    icon: "🎄",
+    name: "Christmas",
+    path: "",
+    holiday: true,
+    greeting: "Merry Christmas! How can I help you today?",
+    placeholder: "Type your wish list… or anything else",
+  },
 ];
 
+// ---- Automatic: the holiday in season ----
+// Each holiday shows through a lead-up and its own day(s). Where two overlap
+// (Hanukkah moves around within Christmas's), the one whose own day it is
+// wins -- the shorter one if both, so Christmas Day stays Christmas.
+
+interface Season {
+  id: string;
+  // The first and last day it shows, and its own day(s) within them.
+  from: Date;
+  to: Date;
+  dayFrom: Date;
+  dayTo: Date;
+}
+
+// Local midnight on a date, so days compare cleanly across time zones and
+// daylight saving.
+function day(year: number, month: number, date: number): Date {
+  return new Date(year, month - 1, date);
+}
+
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function within(date: Date, from: Date, to: Date): boolean {
+  return from.getTime() <= date.getTime() && date.getTime() <= to.getTime();
+}
+
+const hanukkahStarts = new Map<number, Date | null>();
+
+// The first day of Hanukkah (25 Kislev) in a year, from the browser's Hebrew
+// calendar -- null if it hasn't got one. The first candle is lit the evening
+// before.
+function hanukkahIn(year: number): Date | null {
+  if (!hanukkahStarts.has(year)) {
+    let start: Date | null = null;
+    try {
+      const hebrew = new Intl.DateTimeFormat("en-u-ca-hebrew", { month: "long", day: "numeric" });
+      if (hebrew.resolvedOptions().calendar === "hebrew") {
+        // 25 Kislev always falls between Nov 28 and Dec 27.
+        for (let date = day(year, 11, 27); date.getTime() <= day(year, 12, 28).getTime(); date = addDays(date, 1)) {
+          const parts = hebrew.formatToParts(date);
+          const part = (type: string) => parts.find((p) => p.type === type)?.value;
+          if (part("month") === "Kislev" && part("day") === "25") {
+            start = date;
+            break;
+          }
+        }
+      }
+    } catch {
+      // No Hebrew calendar -- Automatic just skips Hanukkah.
+    }
+    hanukkahStarts.set(year, start);
+  }
+  return hanukkahStarts.get(year) ?? null;
+}
+
+function seasonsOf(year: number): Season[] {
+  const season = (id: string, from: Date, to: Date, dayFrom = to, dayTo = dayFrom): Season => ({
+    id,
+    from,
+    to,
+    dayFrom,
+    dayTo,
+  });
+  const november = day(year, 11, 1);
+  // The fourth Thursday of November.
+  const thanksgiving = day(year, 11, 22 + ((11 - november.getDay()) % 7));
+  const seasons = [
+    season("new-year", day(year - 1, 12, 27), day(year, 1, 2), day(year - 1, 12, 31), day(year, 1, 1)),
+    season("valentines", day(year, 2, 1), day(year, 2, 14)),
+    season("st-patricks", day(year, 3, 10), day(year, 3, 17)),
+    season("fourth-of-july", day(year, 6, 28), day(year, 7, 5), day(year, 7, 4)),
+    season("halloween", day(year, 10, 1), day(year, 10, 31)),
+    season("thanksgiving", november, thanksgiving),
+    season("christmas", addDays(thanksgiving, 1), day(year, 12, 26), day(year, 12, 24), day(year, 12, 25)),
+  ];
+  const hanukkah = hanukkahIn(year);
+  if (hanukkah) {
+    const eve = addDays(hanukkah, -1);
+    const last = addDays(hanukkah, 7);
+    seasons.push(season("hanukkah", eve, last, eve, last));
+  }
+  return seasons;
+}
+
+// Every season that can touch a date's year: last year's Hanukkah can run
+// into January, and next year's New Year's starts in December.
+function seasonsAround(date: Date): Season[] {
+  const year = date.getFullYear();
+  return [...seasonsOf(year - 1), ...seasonsOf(year), ...seasonsOf(year + 1)];
+}
+
+// The season a date is in, or null between holidays.
+function seasonOn(date: Date): Season | null {
+  const today = addDays(date, 0);
+  const ownDays = (s: Season) =>
+    within(today, s.dayFrom, s.dayTo) ? s.dayTo.getTime() - s.dayFrom.getTime() : Infinity;
+  let best: Season | null = null;
+  for (const s of seasonsAround(today)) {
+    if (within(today, s.from, s.to) && (!best || ownDays(s) < ownDays(best))) best = s;
+  }
+  return best;
+}
+
+function nextSeason(date: Date): Season | null {
+  let next: Season | null = null;
+  for (const s of seasonsAround(date)) {
+    if (s.from.getTime() > date.getTime() && (!next || s.from.getTime() < next.from.getTime())) next = s;
+  }
+  return next;
+}
+
+// ---- Picking a theme ----
+
 // Read by the inline script at the top of index.html, which opens the
-// remembered theme before the default page draws.
+// remembered theme -- or puts on the remembered holiday -- before the
+// default page draws. With Automatic on, that's the holiday that was in
+// season last visit; if it's changed since, this script swaps it straight
+// away.
 const THEME_KEY = "celta-chat.themePath";
+const HOLIDAY_KEY = "celta-chat.holiday";
+const AUTO_KEY = "celta-chat.holidayAuto";
 // The chat that was open when the theme changed, reopened by the new page.
 // Per tab, so a fresh visit still starts on a new chat.
 const RESUME_KEY = "celta-chat.resumeChat";
 // The project root: this script is always <root>/dist/main.js.
 const appRoot = new URL("..", (document.currentScript as HTMLScriptElement).src);
 const themePicker = document.getElementById("themePicker") as HTMLSelectElement | null;
+const html = document.documentElement;
+const heroTitle = document.querySelector<HTMLElement>(".hero-title");
+const defaultPlaceholder = input.placeholder;
+const autoTheme = THEMES.find((t) => t.auto)!;
+const monthDay = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+
+function optionText(theme: Theme): string {
+  return theme.icon ? `${theme.icon} ${theme.name}` : theme.name;
+}
+
+// Automatic's entry in the menu says what it's showing, or what's next.
+function autoLabel(): string {
+  const now = new Date();
+  const current = THEMES.find((t) => t.id === seasonOn(now)?.id);
+  if (current) return `${optionText(autoTheme)}: ${optionText(current)}`;
+  const next = nextSeason(now);
+  const upcoming = THEMES.find((t) => t.id === next?.id);
+  if (!next || !upcoming) return optionText(autoTheme);
+  return `${optionText(autoTheme)}: ${upcoming.icon} from ${monthDay.format(next.from)}`;
+}
+
+// What a picked theme puts on screen: for Automatic, the holiday in season,
+// or its page's own look between holidays.
+function resolveTheme(theme: Theme): Theme {
+  if (!theme.auto) return theme;
+  const season = seasonOn(new Date());
+  return (
+    THEMES.find((t) => t.id === season?.id) ??
+    THEMES.find((t) => !t.holiday && !t.auto && t.path === theme.path)!
+  );
+}
+
+function autoSaved(): boolean {
+  try {
+    return localStorage.getItem(AUTO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+// This page's own theme; what's picked in the menu; and what that shows.
+const pageTheme = THEMES.find((t) => !t.holiday && !t.auto && t.id === html.dataset.themeId) ?? THEMES[0];
+let pickedTheme =
+  autoTheme.path === pageTheme.path && autoSaved()
+    ? autoTheme
+    : THEMES.find((t) => t.holiday && t.path === pageTheme.path && t.id === html.dataset.holiday) ?? pageTheme;
+let shownTheme = resolveTheme(pickedTheme);
+
+// Remembers a pick, and the holiday it shows for index.html's inline script.
+function saveTheme(theme: Theme): void {
+  const shown = resolveTheme(theme);
+  try {
+    if (theme.path) localStorage.setItem(THEME_KEY, theme.path);
+    else localStorage.removeItem(THEME_KEY);
+    if (shown.holiday) localStorage.setItem(HOLIDAY_KEY, shown.id);
+    else localStorage.removeItem(HOLIDAY_KEY);
+    if (theme.auto) localStorage.setItem(AUTO_KEY, "1");
+    else localStorage.removeItem(AUTO_KEY);
+  } catch {
+    // Storage blocked -- the switch still happens, it just isn't remembered.
+  }
+}
+
+// Puts a holiday (or none) on this page, greeting and hint included.
+function showTheme(theme: Theme): void {
+  shownTheme = theme;
+  if (theme.holiday) html.dataset.holiday = theme.id;
+  else delete html.dataset.holiday;
+  const greeting = theme.greeting ?? GREETING;
+  if (heroTitle) heroTitle.textContent = greeting;
+  const greetingBubble = chat.querySelector<HTMLElement>(".msg.greeting .bubble");
+  if (greetingBubble) greetingBubble.textContent = greeting;
+  input.placeholder = theme.placeholder ?? defaultPlaceholder;
+}
+
+// A theme on another page loads that page, which would drop a reply still
+// on its way -- those wait for it. Holidays here switch in place, so don't.
+function lockOtherPages(locked: boolean): void {
+  if (!themePicker) return;
+  for (const option of Array.from(themePicker.options)) {
+    option.disabled = locked && THEMES.find((t) => t.id === option.value)?.path !== pageTheme.path;
+  }
+}
+
+// The inline script's holiday is out of date: the season has changed since
+// it was saved, or it isn't listed any more.
+if ((html.dataset.holiday ?? "") !== (shownTheme.holiday ? shownTheme.id : "")) saveTheme(pickedTheme);
+showTheme(shownTheme);
+
+let autoOption: HTMLOptionElement | null = null;
+
+// The date can change with the page open: checked just after midnight, and
+// whenever the tab comes back, in case the computer slept through that.
+function checkSeason(): void {
+  if (autoOption) autoOption.text = autoLabel();
+  const shown = resolveTheme(pickedTheme);
+  if (shown === shownTheme) return;
+  saveTheme(pickedTheme);
+  showTheme(shown);
+}
+
+function checkAtMidnight(): void {
+  const now = new Date();
+  setTimeout(() => {
+    checkSeason();
+    checkAtMidnight();
+  }, addDays(now, 1).getTime() - now.getTime() + 1000);
+}
+
+checkAtMidnight();
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) checkSeason();
+});
 
 if (themePicker) {
-  const current = document.documentElement.dataset.themeId;
+  let holidays: HTMLOptGroupElement | null = null;
   for (const theme of THEMES) {
-    themePicker.add(new Option(theme.name, theme.id, false, theme.id === current));
+    const option = new Option(theme.auto ? autoLabel() : optionText(theme), theme.id);
+    if (theme.auto) autoOption = option;
+    if (!theme.holiday && !theme.auto) {
+      themePicker.add(option);
+      continue;
+    }
+    if (!holidays) {
+      holidays = document.createElement("optgroup");
+      holidays.label = "Holidays";
+      themePicker.appendChild(holidays);
+    }
+    holidays.appendChild(option);
   }
+  themePicker.value = pickedTheme.id;
   themePicker.addEventListener("change", () => {
     const theme = THEMES.find((t) => t.id === themePicker.value);
     if (!theme) return;
+    pickedTheme = theme;
+    saveTheme(theme);
+    if (theme.path === pageTheme.path) return showTheme(resolveTheme(theme));
     try {
-      if (theme === THEMES[0]) localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, theme.path);
       if (chats.includes(activeChat)) sessionStorage.setItem(RESUME_KEY, activeChat.id);
     } catch {
-      // Storage blocked -- the switch still happens, it just isn't remembered.
+      // Storage blocked -- the new page just opens on a new chat.
     }
     location.href = new URL(theme.path, appRoot).href;
   });

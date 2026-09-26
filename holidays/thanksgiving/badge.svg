@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- A maple leaf. -->
+  <defs>
+    <linearGradient id="fall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f59f00"/>
+      <stop offset="1" stop-color="#d9480f"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16 16) rotate(-12) scale(1.25) translate(-12 -12)">
+    <path d="M12 1L13.8 5.5 16.5 4.5 15.8 9 20.5 6.5 19.5 9.5 23 10.5 19.5 13.5 20.5 15.5 14.5 15 13 18.5H12.5V23H11.5V18.5H11L9.5 15 3.5 15.5 4.5 13.5 1 10.5 4.5 9.5 3.5 6.5 8.2 9 7.5 4.5 10.2 5.5Z" fill="url(#fall)" stroke="#8a2d08" stroke-width="0.6" stroke-linejoin="round"/>
+    <path d="M12 18.5V4M12 12.5L19 8M12 12.5L5 8M12 15L18 14.5M12 15L6 14.5" fill="none" stroke="#9c3a0c" stroke-width="0.7"/>
+  </g>
+</svg>
