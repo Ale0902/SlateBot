@@ -1373,18 +1373,20 @@ aboutBtn?.addEventListener("click", () => {
 // data-theme-id on its <html>, add a <select id="themePicker"> somewhere,
 // and list it here. The first theme is the default, served at the root.
 //
-// Holidays dress up an existing page instead of being one: picking one puts
-// data-holiday on that page's <html> (styled in holidays/holidays.css) and
-// swaps its greeting, without loading anything. Automatic does the same
-// with whichever holiday is in season (see seasonsOf), and moves on to the
-// next when the season changes.
+// Holidays dress up whichever page is open instead of being one: picking
+// one puts data-holiday on its <html> -- styled by that page, in
+// holidays/holidays.css and retro/holidays.css -- and swaps its greeting,
+// without loading anything. Automatic does the same with whichever holiday
+// is in season (see seasonsOf), and moves on to the next when the season
+// changes.
 interface Theme {
   id: string;
   name: string;
   // Shown before the name in the menu.
   icon?: string;
   // The page's folder, relative to the project root ("" for the root).
-  path: string;
+  // Holidays and Automatic have none -- they go on the page that's open.
+  path?: string;
   holiday?: boolean;
   auto?: boolean;
   // What the empty chat says, and the hint in the message box, while it's on.
@@ -1395,13 +1397,12 @@ interface Theme {
 const THEMES: Theme[] = [
   { id: "modern", name: "Modern", path: "" },
   { id: "retro", name: "Retro IM", path: "retro/" },
-  { id: "auto", icon: "🗓️", name: "Automatic", path: "", auto: true },
+  { id: "auto", icon: "🗓️", name: "Automatic", auto: true },
   // In calendar order.
   {
     id: "new-year",
     icon: "🥂",
     name: "New Year's",
-    path: "",
     holiday: true,
     greeting: "Happy New Year! How can I help you today?",
     placeholder: "New year, new questions…",
@@ -1410,7 +1411,6 @@ const THEMES: Theme[] = [
     id: "valentines",
     icon: "💘",
     name: "Valentine's Day",
-    path: "",
     holiday: true,
     greeting: "Happy Valentine's Day! How can I help you today?",
     placeholder: "Type a sweet message…",
@@ -1419,7 +1419,6 @@ const THEMES: Theme[] = [
     id: "st-patricks",
     icon: "☘️",
     name: "St. Patrick's Day",
-    path: "",
     holiday: true,
     greeting: "Happy St. Patrick's Day! How can I help you today?",
     placeholder: "Feeling lucky? Ask away…",
@@ -1428,7 +1427,6 @@ const THEMES: Theme[] = [
     id: "fourth-of-july",
     icon: "🎆",
     name: "Fourth of July",
-    path: "",
     holiday: true,
     greeting: "Happy Fourth of July! How can I help you today?",
   },
@@ -1436,7 +1434,6 @@ const THEMES: Theme[] = [
     id: "halloween",
     icon: "🎃",
     name: "Halloween",
-    path: "",
     holiday: true,
     greeting: "Happy Halloween! What can I conjure up for you?",
     placeholder: "Ask me anything… if you dare",
@@ -1445,7 +1442,6 @@ const THEMES: Theme[] = [
     id: "thanksgiving",
     icon: "🦃",
     name: "Thanksgiving",
-    path: "",
     holiday: true,
     greeting: "Happy Thanksgiving! How can I help you today?",
     placeholder: "What's on your plate today?",
@@ -1454,7 +1450,6 @@ const THEMES: Theme[] = [
     id: "hanukkah",
     icon: "🕎",
     name: "Hanukkah",
-    path: "",
     holiday: true,
     greeting: "Happy Hanukkah! How can I help you today?",
   },
@@ -1462,7 +1457,6 @@ const THEMES: Theme[] = [
     id: "christmas",
     icon: "🎄",
     name: "Christmas",
-    path: "",
     holiday: true,
     greeting: "Merry Christmas! How can I help you today?",
     placeholder: "Type your wish list… or anything else",
@@ -1584,11 +1578,10 @@ function nextSeason(date: Date): Season | null {
 
 // ---- Picking a theme ----
 
-// Read by the inline script at the top of index.html, which opens the
-// remembered theme -- or puts on the remembered holiday -- before the
-// default page draws. With Automatic on, that's the holiday that was in
-// season last visit; if it's changed since, this script swaps it straight
-// away.
+// Read by the inline scripts at the top of each page, before it draws:
+// index.html opens the remembered page, and both put on the remembered
+// holiday. With Automatic on, that's the holiday that was in season last
+// visit; if it's changed since, this script swaps it straight away.
 const THEME_KEY = "celta-chat.themePath";
 const HOLIDAY_KEY = "celta-chat.holiday";
 const AUTO_KEY = "celta-chat.holidayAuto";
@@ -1620,14 +1613,11 @@ function autoLabel(): string {
 }
 
 // What a picked theme puts on screen: for Automatic, the holiday in season,
-// or its page's own look between holidays.
+// or this page's own look between holidays.
 function resolveTheme(theme: Theme): Theme {
   if (!theme.auto) return theme;
   const season = seasonOn(new Date());
-  return (
-    THEMES.find((t) => t.id === season?.id) ??
-    THEMES.find((t) => !t.holiday && !t.auto && t.path === theme.path)!
-  );
+  return THEMES.find((t) => t.id === season?.id) ?? pageTheme;
 }
 
 function autoSaved(): boolean {
@@ -1639,18 +1629,23 @@ function autoSaved(): boolean {
 }
 
 // This page's own theme; what's picked in the menu; and what that shows.
-const pageTheme = THEMES.find((t) => !t.holiday && !t.auto && t.id === html.dataset.themeId) ?? THEMES[0];
-let pickedTheme =
-  autoTheme.path === pageTheme.path && autoSaved()
-    ? autoTheme
-    : THEMES.find((t) => t.holiday && t.path === pageTheme.path && t.id === html.dataset.holiday) ?? pageTheme;
+const pageTheme = THEMES.find((t) => t.path !== undefined && t.id === html.dataset.themeId) ?? THEMES[0];
+let pickedTheme = autoSaved()
+  ? autoTheme
+  : THEMES.find((t) => t.holiday && t.id === html.dataset.holiday) ?? pageTheme;
 let shownTheme = resolveTheme(pickedTheme);
 
-// Remembers a pick, and the holiday it shows for index.html's inline script.
+// Holidays, Automatic and this page itself all switch without a page load.
+function inPlace(theme: Theme): boolean {
+  return theme.path === undefined || theme.path === pageTheme.path;
+}
+
+// Remembers a pick, and the holiday it shows for the pages' inline scripts.
 function saveTheme(theme: Theme): void {
   const shown = resolveTheme(theme);
+  const path = theme.path ?? pageTheme.path;
   try {
-    if (theme.path) localStorage.setItem(THEME_KEY, theme.path);
+    if (path) localStorage.setItem(THEME_KEY, path);
     else localStorage.removeItem(THEME_KEY);
     if (shown.holiday) localStorage.setItem(HOLIDAY_KEY, shown.id);
     else localStorage.removeItem(HOLIDAY_KEY);
@@ -1674,11 +1669,13 @@ function showTheme(theme: Theme): void {
 }
 
 // A theme on another page loads that page, which would drop a reply still
-// on its way -- those wait for it. Holidays here switch in place, so don't.
+// on its way -- those wait for it. Holidays and Automatic switch in place,
+// so they don't.
 function lockOtherPages(locked: boolean): void {
   if (!themePicker) return;
   for (const option of Array.from(themePicker.options)) {
-    option.disabled = locked && THEMES.find((t) => t.id === option.value)?.path !== pageTheme.path;
+    const theme = THEMES.find((t) => t.id === option.value);
+    option.disabled = locked && !!theme && !inPlace(theme);
   }
 }
 
@@ -1734,13 +1731,13 @@ if (themePicker) {
     if (!theme) return;
     pickedTheme = theme;
     saveTheme(theme);
-    if (theme.path === pageTheme.path) return showTheme(resolveTheme(theme));
+    if (inPlace(theme)) return showTheme(resolveTheme(theme));
     try {
       if (chats.includes(activeChat)) sessionStorage.setItem(RESUME_KEY, activeChat.id);
     } catch {
       // Storage blocked -- the new page just opens on a new chat.
     }
-    location.href = new URL(theme.path, appRoot).href;
+    location.href = new URL(theme.path ?? "", appRoot).href;
   });
 }
 

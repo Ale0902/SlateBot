@@ -2,9 +2,18 @@
 <html lang="en" data-theme-id="retro">
 <head>
 <meta charset="UTF-8">
+<script>
+  // Puts on the holiday picked last time (see THEMES in src/main.ts)
+  // before anything draws.
+  try {
+    const holiday = localStorage.getItem("celta-chat.holiday");
+    if (holiday && /^[a-z0-9-]+$/.test(holiday)) document.documentElement.dataset.holiday = holiday;
+  } catch {}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Slate Bot - Instant Message</title>
 <link rel="stylesheet" href="retro.css">
+<link rel="stylesheet" href="holidays.css">
 </head>
 <body>
 <!-- A 2000s instant-messenger skin for the same app as ../index.html: same

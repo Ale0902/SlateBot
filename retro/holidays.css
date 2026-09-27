@@ -1,0 +1,138 @@
+/* Holiday decorations for the retro skin -- small ones, around the chat: a
+   garland along the top of the conversation, something standing beside it
+   under Slate Bot's icon, and a trim around the message box with an
+   ornament in its corner. All pixel art from holidays/<id>/, drawn at
+   exactly 2x like the buddy icons. They're picked from the theme menu
+   along with the main page's holidays (THEMES in src/main.ts), which puts
+   data-holiday on <html>. */
+
+:root[data-holiday] .convo {
+  position: relative;
+}
+
+/* Along the conversation's top edge: the string on the frame, the rest
+   hanging in. Starts past the avatar column and the gap beside it. */
+:root[data-holiday] .convo::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 82px;
+  right: 0;
+  height: 16px;
+  background: var(--rh-garland) 0 0 / 64px 16px repeat-x;
+  pointer-events: none;
+}
+
+/* ...with the first line starting below it. */
+:root[data-holiday] .chat {
+  padding-top: 16px;
+}
+
+/* At the bottom of the avatar column, next to the conversation. */
+:root[data-holiday] .convo::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 36px;
+  height: 36px;
+  background: var(--rh-sitter) center / 36px 36px no-repeat;
+  pointer-events: none;
+}
+
+/* A trim around the message box, just outside its own frame: the ring in
+   trim.svg, sliced 2px in and drawn at 2x, its sides repeated to fit. It
+   fits in the gaps around the box, so it touches nothing beside it. */
+:root[data-holiday] .input-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 4px solid transparent;
+  border-image: var(--rh-trim) 2 / 4px round;
+  pointer-events: none;
+}
+
+/* In the message box's bottom-right corner, with the text kept clear of it. */
+:root[data-holiday] .input-wrap::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 24px;
+  height: 24px;
+  background: var(--rh-corner) center / contain no-repeat;
+  pointer-events: none;
+}
+
+:root[data-holiday] textarea {
+  padding-right: 36px;
+}
+
+/* No avatar column here (see retro.css). */
+@media (max-width: 680px) {
+  :root[data-holiday] .convo::before {
+    left: 0;
+  }
+
+  :root[data-holiday] .convo::after {
+    display: none;
+  }
+}
+
+/* ---- The holidays, in calendar order ---- */
+
+:root[data-holiday="new-year"] {
+  --rh-garland: url(holidays/new-year/garland.svg);
+  --rh-sitter: url(holidays/new-year/sitter.svg);
+  --rh-corner: url(holidays/new-year/corner.svg);
+  --rh-trim: url(holidays/new-year/trim.svg);
+}
+
+:root[data-holiday="valentines"] {
+  --rh-garland: url(holidays/valentines/garland.svg);
+  --rh-sitter: url(holidays/valentines/sitter.svg);
+  --rh-corner: url(holidays/valentines/corner.svg);
+  --rh-trim: url(holidays/valentines/trim.svg);
+}
+
+:root[data-holiday="st-patricks"] {
+  --rh-garland: url(holidays/st-patricks/garland.svg);
+  --rh-sitter: url(holidays/st-patricks/sitter.svg);
+  --rh-corner: url(holidays/st-patricks/corner.svg);
+  --rh-trim: url(holidays/st-patricks/trim.svg);
+}
+
+:root[data-holiday="fourth-of-july"] {
+  --rh-garland: url(holidays/fourth-of-july/garland.svg);
+  --rh-sitter: url(holidays/fourth-of-july/sitter.svg);
+  --rh-corner: url(holidays/fourth-of-july/corner.svg);
+  --rh-trim: url(holidays/fourth-of-july/trim.svg);
+}
+
+:root[data-holiday="halloween"] {
+  --rh-garland: url(holidays/halloween/garland.svg);
+  --rh-sitter: url(holidays/halloween/sitter.svg);
+  --rh-corner: url(holidays/halloween/corner.svg);
+  --rh-trim: url(holidays/halloween/trim.svg);
+}
+
+:root[data-holiday="thanksgiving"] {
+  --rh-garland: url(holidays/thanksgiving/garland.svg);
+  --rh-sitter: url(holidays/thanksgiving/sitter.svg);
+  --rh-corner: url(holidays/thanksgiving/corner.svg);
+  --rh-trim: url(holidays/thanksgiving/trim.svg);
+}
+
+:root[data-holiday="hanukkah"] {
+  --rh-garland: url(holidays/hanukkah/garland.svg);
+  --rh-sitter: url(holidays/hanukkah/sitter.svg);
+  --rh-corner: url(holidays/hanukkah/corner.svg);
+  --rh-trim: url(holidays/hanukkah/trim.svg);
+}
+
+:root[data-holiday="christmas"] {
+  --rh-garland: url(holidays/christmas/garland.svg);
+  --rh-sitter: url(holidays/christmas/sitter.svg);
+  --rh-corner: url(holidays/christmas/corner.svg);
+  --rh-trim: url(holidays/christmas/trim.svg);
+}
