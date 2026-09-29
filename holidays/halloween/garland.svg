@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+  <!-- Bunting in orange, purple and slime green, with bats on the orange. -->
+  <defs>
+    <path id="bat" d="M0-1.2L-.8-2.6-1.1-1C-2.5-1.8-4.6-2.4-6-1.6-5-.8-4.8.4-5 1.6-4 .9-3 .9-2.4 1.8-1.6 1-.8 1.2 0 2.4 .8 1.2 1.6 1 2.4 1.8 3 .9 4 .9 5 1.6 4.8.4 5-.8 6-1.6 4.6-2.4 2.5-1.8 1.1-1L.8-2.6Z"/>
+  </defs>
+  <path d="M2 4.54L18 8.39 10 24.58Z" fill="#ff8a1f"/>
+  <path d="M22 9.22L38 11.97 30 28.7Z" fill="#7b2cbf"/>
+  <path d="M42 12.52L58 14.17 50 31.45Z" fill="#7cc242"/>
+  <path d="M62 14.44L78 14.99 70 32.83Z" fill="#ff8a1f"/>
+  <path d="M82 14.99L98 14.44 90 32.83Z" fill="#7b2cbf"/>
+  <path d="M102 14.17L118 12.52 110 31.45Z" fill="#7cc242"/>
+  <path d="M122 11.97L138 9.22 130 28.7Z" fill="#ff8a1f"/>
+  <path d="M142 8.39L158 4.54 150 24.58Z" fill="#7b2cbf"/>
+  <g fill="#1a0f22">
+    <use href="#bat" transform="translate(10 11) rotate(13) scale(.85)"/>
+    <use href="#bat" transform="translate(70 19.5) rotate(2) scale(.85)"/>
+    <use href="#bat" transform="translate(130 15) rotate(-10) scale(.85)"/>
+  </g>
+  <path d="M0 4Q80 26 160 4" fill="none" stroke="#d9c6ea" stroke-width="1.2" opacity="0.6"/>
+</svg>

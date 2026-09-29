@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- A heart with Cupid's arrow through it. -->
+  <path d="M4 34L39.97 10.57" stroke="#f5d0a9" stroke-width="2" stroke-linecap="round"/>
+  <path d="M5.68 32.91L4.81 37.06M5.68 32.91L1.53 32.04M8.19 31.28L7.32 35.43M8.19 31.28L4.04 30.41" stroke="#ffb3c6" stroke-width="1.6" stroke-linecap="round"/>
+  <path transform="translate(24 21) scale(1.1) translate(-12 -12)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ff4d6d" stroke="#a3173f" stroke-width="0.6"/>
+  <ellipse cx="19" cy="15" rx="2" ry="3" transform="rotate(-35 19 15)" fill="#fff" opacity="0.4"/>
+  <path d="M32 15.8L39.97 10.57" stroke="#f5d0a9" stroke-width="2" stroke-linecap="round"/>
+  <path d="M45 7.3L41.6 13.08 38.34 8.06Z" fill="#f5d0a9" stroke="#c9a27a" stroke-width="0.5" stroke-linejoin="round"/>
+</svg>

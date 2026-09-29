@@ -96,6 +96,8 @@ const SOURCE_LINE_RE = /^[ \t]*Source:[ \t]*(https?:\/\/\S+)[ \t]*$/im;
 // Any Source line at all -- the model also writes ones like "Source: ESPN" or
 // "Source: <the tool's result text>", which can't be verified either.
 const ANY_SOURCE_LINE_RE = /^[ \t]*Source:.*$/gim;
+// A citation tacked onto the end of the last sentence instead of its own line.
+const TRAILING_SOURCE_RE = /[ \t]+(Source:[ \t]*https?:\/\/\S+)[ \t]*$/i;
 // Tools that render a chart tag it with this marker. It's pulled out of the
 // result as a side channel -- never asked for in the model's reply.
 const CHART_PATH_RE = /^CHART_PATH:[ \t]*(.+?)[ \t]*$/m;
@@ -135,6 +137,13 @@ function verifyCitation(content: string, seenUrls: Set<string>): string {
     kept.replace(/\n{3,}/g, "\n\n").trimEnd() +
     "\n\n(Note: I couldn't verify that source against what I actually looked up -- treat this with caution.)"
   );
+}
+
+// The model sometimes ends its answer "...last sentence. Source: <url>"
+// rather than giving the citation a line of its own. Moving it onto one gets
+// it checked like any other -- and, if it checks out, linked and previewed.
+function separateTrailingSource(content: string): string {
+  return content.replace(TRAILING_SOURCE_RE, "\n$1");
 }
 
 function stripCitation(content: string): string {
@@ -647,7 +656,7 @@ async function runAgent(
   const callsMade = new Set<string>();
 
   const finish = (content: string): AgentResult => {
-    const cleaned = content.replace(TOOL_CALL_LINE_RE, "").trim();
+    const cleaned = separateTrailingSource(content.replace(TOOL_CALL_LINE_RE, "").trim());
     // Chart data is computed by the tool, so there's no real URL to cite.
     const answer = chartUrl ? stripCitation(cleaned) : verifyCitation(cleaned, seenUrls);
     const source = SOURCE_LINE_RE.exec(answer)?.[1] ?? null;

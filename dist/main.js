@@ -63,6 +63,8 @@ const SOURCE_LINE_RE = /^[ \t]*Source:[ \t]*(https?:\/\/\S+)[ \t]*$/im;
 // Any Source line at all -- the model also writes ones like "Source: ESPN" or
 // "Source: <the tool's result text>", which can't be verified either.
 const ANY_SOURCE_LINE_RE = /^[ \t]*Source:.*$/gim;
+// A citation tacked onto the end of the last sentence instead of its own line.
+const TRAILING_SOURCE_RE = /[ \t]+(Source:[ \t]*https?:\/\/\S+)[ \t]*$/i;
 // Tools that render a chart tag it with this marker. It's pulled out of the
 // result as a side channel -- never asked for in the model's reply.
 const CHART_PATH_RE = /^CHART_PATH:[ \t]*(.+?)[ \t]*$/m;
@@ -95,6 +97,12 @@ function verifyCitation(content, seenUrls) {
         return content;
     return (kept.replace(/\n{3,}/g, "\n\n").trimEnd() +
         "\n\n(Note: I couldn't verify that source against what I actually looked up -- treat this with caution.)");
+}
+// The model sometimes ends its answer "...last sentence. Source: <url>"
+// rather than giving the citation a line of its own. Moving it onto one gets
+// it checked like any other -- and, if it checks out, linked and previewed.
+function separateTrailingSource(content) {
+    return content.replace(TRAILING_SOURCE_RE, "\n$1");
 }
 function stripCitation(content) {
     return content.replace(ANY_SOURCE_LINE_RE, "").replace(/\n{3,}/g, "\n\n").trimEnd();
@@ -523,7 +531,7 @@ async function runAgent(question, image, history, priorUrls, onStatus) {
     const retryQuery = pickRetryQuery(question, history);
     const callsMade = new Set();
     const finish = (content) => {
-        const cleaned = content.replace(TOOL_CALL_LINE_RE, "").trim();
+        const cleaned = separateTrailingSource(content.replace(TOOL_CALL_LINE_RE, "").trim());
         // Chart data is computed by the tool, so there's no real URL to cite.
         const answer = chartUrl ? stripCitation(cleaned) : verifyCitation(cleaned, seenUrls);
         const source = SOURCE_LINE_RE.exec(answer)?.[1] ?? null;
@@ -778,7 +786,9 @@ function appendImage(bubble, src, alt) {
 // Text goes in via textContent; the (already verified) Source line becomes a link.
 function fillBubble(bubble, message) {
     const match = message.role === "assistant" ? SOURCE_LINE_RE.exec(message.content) : null;
-    const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1] : null;
+    // Without punctuation the model puts after it ("...706d."), which would
+    // break the link.
+    const sourceUrl = match && /^https?:\/\//i.test(match[1]) ? match[1].replace(/[.,;:!?)\]]+$/, "") : null;
     bubble.textContent = sourceUrl ? stripCitation(message.content) : message.content;
     if (message.image) {
         bubble.prepend(appendImage(bubble, message.image, "Attached image"));
@@ -839,43 +849,79 @@ function appendLinkPreview(bubble, url) {
     card.hidden = true;
     bubble.appendChild(card);
     void loadPreview(url).then((preview) => {
-        if (!preview || !card.isConnected)
-            return card.remove();
+        if (!card.isConnected)
+            return;
         const nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
-        if (preview.image) {
-            const thumb = document.createElement("img");
-            thumb.className = "link-card-thumb";
-            thumb.src = preview.image;
-            thumb.alt = "";
-            thumb.loading = "lazy";
-            thumb.referrerPolicy = "no-referrer";
-            // Many sites refuse hotlinked images -- fall back to a text-only card.
-            thumb.addEventListener("error", () => {
-                thumb.remove();
-                if (!preview.title)
-                    card.remove();
-            });
-            card.appendChild(thumb);
-        }
-        const text = document.createElement("div");
-        text.className = "link-card-text";
-        for (const [className, value] of [
-            ["link-card-site", preview.siteName],
-            ["link-card-title", preview.title],
-            ["link-card-desc", preview.description],
-        ]) {
-            if (!value)
-                continue;
-            const line = document.createElement("span");
-            line.className = className;
-            line.textContent = value;
-            text.appendChild(line);
-        }
-        card.appendChild(text);
+        if (preview)
+            fillPreviewCard(card, preview);
+        else
+            fillBasicCard(card, url);
         card.hidden = false;
         if (nearBottom)
             chat.scrollTop = chat.scrollHeight;
     });
+}
+// The page's own preview: its picture, site, title and description.
+function fillPreviewCard(card, preview) {
+    if (preview.image) {
+        const thumb = document.createElement("img");
+        thumb.className = "link-card-thumb";
+        thumb.src = preview.image;
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        thumb.referrerPolicy = "no-referrer";
+        // Many sites refuse hotlinked images -- fall back to a text-only card,
+        // or to the basic one if there's no title to show either.
+        thumb.addEventListener("error", () => {
+            thumb.remove();
+            if (!preview.title)
+                fillBasicCard(card, preview.url);
+        });
+        card.appendChild(thumb);
+    }
+    const text = document.createElement("div");
+    text.className = "link-card-text";
+    for (const [className, value] of [
+        ["link-card-site", preview.siteName],
+        ["link-card-title", preview.title],
+        ["link-card-desc", preview.description],
+    ]) {
+        if (!value)
+            continue;
+        const line = document.createElement("span");
+        line.className = className;
+        line.textContent = value;
+        text.appendChild(line);
+    }
+    card.appendChild(text);
+}
+// For a page that can't be previewed -- plenty of sites turn away automated
+// requests, so the bridge never sees their preview tags -- the site's name,
+// with its icon when it has one. The icon loads straight from the site,
+// like any picture in an answer.
+function fillBasicCard(card, url) {
+    let site;
+    try {
+        site = new URL(url);
+    }
+    catch {
+        card.remove();
+        return;
+    }
+    const icon = document.createElement("img");
+    icon.className = "link-card-icon";
+    icon.src = `${site.origin}/favicon.ico`;
+    icon.alt = "";
+    icon.referrerPolicy = "no-referrer";
+    icon.addEventListener("error", () => icon.remove());
+    const text = document.createElement("div");
+    text.className = "link-card-text";
+    const name = document.createElement("span");
+    name.className = "link-card-title";
+    name.textContent = site.hostname.replace(/^www\./, "");
+    text.appendChild(name);
+    card.classList.add("is-basic");
+    card.replaceChildren(icon, text);
 }
 function addMessage(role, message, extraClass = "") {
     const wrap = document.createElement("div");
@@ -887,7 +933,7 @@ function addMessage(role, message, extraClass = "") {
 }
 function renderChat(target) {
     chat.innerHTML = "";
-    addMessage("bot", { role: "assistant", content: GREETING }, "greeting");
+    addMessage("bot", { role: "assistant", content: shownTheme.greeting ?? GREETING }, "greeting");
     target.messages.forEach((message) => addMessage(message.role === "user" ? "user" : "bot", message));
     if (pending?.chat === target)
         chat.appendChild(pending.typing);
@@ -1548,9 +1594,7 @@ async function send(raw) {
     draftAttachments.delete(target.id);
     resizeInput();
     sendBtn.disabled = true;
-    // Switching themes loads another page, which would drop this reply.
-    if (themePicker)
-        themePicker.disabled = true;
+    lockOtherPages(true);
     const typing = showTyping();
     setBotStatus("Thinking…");
     pending = { chat: target, typing };
@@ -1594,8 +1638,7 @@ async function send(raw) {
         pending = null;
         busy = false;
         sendBtn.disabled = false;
-        if (themePicker)
-            themePicker.disabled = false;
+        lockOtherPages(false);
         input.focus();
     }
 }
@@ -1812,37 +1855,334 @@ aboutBtn?.addEventListener("click", () => {
 const THEMES = [
     { id: "modern", name: "Modern", path: "" },
     { id: "retro", name: "Retro IM", path: "retro/" },
+    { id: "auto", icon: "🗓️", name: "Automatic", auto: true },
+    // In calendar order.
+    {
+        id: "new-year",
+        icon: "🥂",
+        name: "New Year's",
+        holiday: true,
+        greeting: "Happy New Year! How can I help you today?",
+        placeholder: "New year, new questions…",
+    },
+    {
+        id: "valentines",
+        icon: "💘",
+        name: "Valentine's Day",
+        holiday: true,
+        greeting: "Happy Valentine's Day! How can I help you today?",
+        placeholder: "Type a sweet message…",
+    },
+    {
+        id: "st-patricks",
+        icon: "☘️",
+        name: "St. Patrick's Day",
+        holiday: true,
+        greeting: "Happy St. Patrick's Day! How can I help you today?",
+        placeholder: "Feeling lucky? Ask away…",
+    },
+    {
+        id: "fourth-of-july",
+        icon: "🎆",
+        name: "Fourth of July",
+        holiday: true,
+        greeting: "Happy Fourth of July! How can I help you today?",
+    },
+    {
+        id: "halloween",
+        icon: "🎃",
+        name: "Halloween",
+        holiday: true,
+        greeting: "Happy Halloween! What can I conjure up for you?",
+        placeholder: "Ask me anything… if you dare",
+    },
+    {
+        id: "thanksgiving",
+        icon: "🦃",
+        name: "Thanksgiving",
+        holiday: true,
+        greeting: "Happy Thanksgiving! How can I help you today?",
+        placeholder: "What's on your plate today?",
+    },
+    {
+        id: "hanukkah",
+        icon: "🕎",
+        name: "Hanukkah",
+        holiday: true,
+        greeting: "Happy Hanukkah! How can I help you today?",
+    },
+    {
+        id: "christmas",
+        icon: "🎄",
+        name: "Christmas",
+        holiday: true,
+        greeting: "Merry Christmas! How can I help you today?",
+        placeholder: "Type your wish list… or anything else",
+    },
 ];
-// Read by the inline script at the top of index.html, which opens the
-// remembered theme before the default page draws.
+// Local midnight on a date, so days compare cleanly across time zones and
+// daylight saving.
+function day(year, month, date) {
+    return new Date(year, month - 1, date);
+}
+function addDays(date, days) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+function within(date, from, to) {
+    return from.getTime() <= date.getTime() && date.getTime() <= to.getTime();
+}
+const hanukkahStarts = new Map();
+// The first day of Hanukkah (25 Kislev) in a year, from the browser's Hebrew
+// calendar -- null if it hasn't got one. The first candle is lit the evening
+// before.
+function hanukkahIn(year) {
+    if (!hanukkahStarts.has(year)) {
+        let start = null;
+        try {
+            const hebrew = new Intl.DateTimeFormat("en-u-ca-hebrew", { month: "long", day: "numeric" });
+            if (hebrew.resolvedOptions().calendar === "hebrew") {
+                // 25 Kislev always falls between Nov 28 and Dec 27.
+                for (let date = day(year, 11, 27); date.getTime() <= day(year, 12, 28).getTime(); date = addDays(date, 1)) {
+                    const parts = hebrew.formatToParts(date);
+                    const part = (type) => parts.find((p) => p.type === type)?.value;
+                    if (part("month") === "Kislev" && part("day") === "25") {
+                        start = date;
+                        break;
+                    }
+                }
+            }
+        }
+        catch {
+            // No Hebrew calendar -- Automatic just skips Hanukkah.
+        }
+        hanukkahStarts.set(year, start);
+    }
+    return hanukkahStarts.get(year) ?? null;
+}
+function seasonsOf(year) {
+    const season = (id, from, to, dayFrom = to, dayTo = dayFrom) => ({
+        id,
+        from,
+        to,
+        dayFrom,
+        dayTo,
+    });
+    const november = day(year, 11, 1);
+    // The fourth Thursday of November.
+    const thanksgiving = day(year, 11, 22 + ((11 - november.getDay()) % 7));
+    const seasons = [
+        season("new-year", day(year - 1, 12, 27), day(year, 1, 2), day(year - 1, 12, 31), day(year, 1, 1)),
+        season("valentines", day(year, 2, 1), day(year, 2, 14)),
+        season("st-patricks", day(year, 3, 10), day(year, 3, 17)),
+        season("fourth-of-july", day(year, 6, 28), day(year, 7, 5), day(year, 7, 4)),
+        season("halloween", day(year, 10, 1), day(year, 10, 31)),
+        season("thanksgiving", november, thanksgiving),
+        season("christmas", addDays(thanksgiving, 1), day(year, 12, 26), day(year, 12, 24), day(year, 12, 25)),
+    ];
+    const hanukkah = hanukkahIn(year);
+    if (hanukkah) {
+        const eve = addDays(hanukkah, -1);
+        const last = addDays(hanukkah, 7);
+        seasons.push(season("hanukkah", eve, last, eve, last));
+    }
+    return seasons;
+}
+// Every season that can touch a date's year: last year's Hanukkah can run
+// into January, and next year's New Year's starts in December.
+function seasonsAround(date) {
+    const year = date.getFullYear();
+    return [...seasonsOf(year - 1), ...seasonsOf(year), ...seasonsOf(year + 1)];
+}
+// The season a date is in, or null between holidays.
+function seasonOn(date) {
+    const today = addDays(date, 0);
+    const ownDays = (s) => within(today, s.dayFrom, s.dayTo) ? s.dayTo.getTime() - s.dayFrom.getTime() : Infinity;
+    let best = null;
+    for (const s of seasonsAround(today)) {
+        if (within(today, s.from, s.to) && (!best || ownDays(s) < ownDays(best)))
+            best = s;
+    }
+    return best;
+}
+function nextSeason(date) {
+    let next = null;
+    for (const s of seasonsAround(date)) {
+        if (s.from.getTime() > date.getTime() && (!next || s.from.getTime() < next.from.getTime()))
+            next = s;
+    }
+    return next;
+}
+// ---- Picking a theme ----
+// Read by the inline scripts at the top of each page, before it draws:
+// index.html opens the remembered page, and both put on the remembered
+// holiday. With Automatic on, that's the holiday that was in season last
+// visit; if it's changed since, this script swaps it straight away.
 const THEME_KEY = "celta-chat.themePath";
+const HOLIDAY_KEY = "celta-chat.holiday";
+const AUTO_KEY = "celta-chat.holidayAuto";
 // The chat that was open when the theme changed, reopened by the new page.
 // Per tab, so a fresh visit still starts on a new chat.
 const RESUME_KEY = "celta-chat.resumeChat";
 // The project root: this script is always <root>/dist/main.js.
 const appRoot = new URL("..", document.currentScript.src);
 const themePicker = document.getElementById("themePicker");
-if (themePicker) {
-    const current = document.documentElement.dataset.themeId;
-    for (const theme of THEMES) {
-        themePicker.add(new Option(theme.name, theme.id, false, theme.id === current));
+const html = document.documentElement;
+const heroTitle = document.querySelector(".hero-title");
+const defaultPlaceholder = input.placeholder;
+const autoTheme = THEMES.find((t) => t.auto);
+const monthDay = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+function optionText(theme) {
+    return theme.icon ? `${theme.icon} ${theme.name}` : theme.name;
+}
+// Automatic's entry in the menu says what it's showing, or what's next.
+function autoLabel() {
+    const now = new Date();
+    const current = THEMES.find((t) => t.id === seasonOn(now)?.id);
+    if (current)
+        return `${optionText(autoTheme)}: ${optionText(current)}`;
+    const next = nextSeason(now);
+    const upcoming = THEMES.find((t) => t.id === next?.id);
+    if (!next || !upcoming)
+        return optionText(autoTheme);
+    return `${optionText(autoTheme)}: ${upcoming.icon} from ${monthDay.format(next.from)}`;
+}
+// What a picked theme puts on screen: for Automatic, the holiday in season,
+// or this page's own look between holidays.
+function resolveTheme(theme) {
+    if (!theme.auto)
+        return theme;
+    const season = seasonOn(new Date());
+    return THEMES.find((t) => t.id === season?.id) ?? pageTheme;
+}
+function autoSaved() {
+    try {
+        return localStorage.getItem(AUTO_KEY) === "1";
     }
+    catch {
+        return false;
+    }
+}
+// This page's own theme; what's picked in the menu; and what that shows.
+const pageTheme = THEMES.find((t) => t.path !== undefined && t.id === html.dataset.themeId) ?? THEMES[0];
+let pickedTheme = autoSaved()
+    ? autoTheme
+    : THEMES.find((t) => t.holiday && t.id === html.dataset.holiday) ?? pageTheme;
+let shownTheme = resolveTheme(pickedTheme);
+// Holidays, Automatic and this page itself all switch without a page load.
+function inPlace(theme) {
+    return theme.path === undefined || theme.path === pageTheme.path;
+}
+// Remembers a pick, and the holiday it shows for the pages' inline scripts.
+function saveTheme(theme) {
+    const shown = resolveTheme(theme);
+    const path = theme.path ?? pageTheme.path;
+    try {
+        if (path)
+            localStorage.setItem(THEME_KEY, path);
+        else
+            localStorage.removeItem(THEME_KEY);
+        if (shown.holiday)
+            localStorage.setItem(HOLIDAY_KEY, shown.id);
+        else
+            localStorage.removeItem(HOLIDAY_KEY);
+        if (theme.auto)
+            localStorage.setItem(AUTO_KEY, "1");
+        else
+            localStorage.removeItem(AUTO_KEY);
+    }
+    catch {
+        // Storage blocked -- the switch still happens, it just isn't remembered.
+    }
+}
+// Puts a holiday (or none) on this page, greeting and hint included.
+function showTheme(theme) {
+    shownTheme = theme;
+    if (theme.holiday)
+        html.dataset.holiday = theme.id;
+    else
+        delete html.dataset.holiday;
+    const greeting = theme.greeting ?? GREETING;
+    if (heroTitle)
+        heroTitle.textContent = greeting;
+    const greetingBubble = chat.querySelector(".msg.greeting .bubble");
+    if (greetingBubble)
+        greetingBubble.textContent = greeting;
+    input.placeholder = theme.placeholder ?? defaultPlaceholder;
+}
+// A theme on another page loads that page, which would drop a reply still
+// on its way -- those wait for it. Holidays and Automatic switch in place,
+// so they don't.
+function lockOtherPages(locked) {
+    if (!themePicker)
+        return;
+    for (const option of Array.from(themePicker.options)) {
+        const theme = THEMES.find((t) => t.id === option.value);
+        option.disabled = locked && !!theme && !inPlace(theme);
+    }
+}
+// The inline script's holiday is out of date: the season has changed since
+// it was saved, or it isn't listed any more.
+if ((html.dataset.holiday ?? "") !== (shownTheme.holiday ? shownTheme.id : ""))
+    saveTheme(pickedTheme);
+showTheme(shownTheme);
+let autoOption = null;
+// The date can change with the page open: checked just after midnight, and
+// whenever the tab comes back, in case the computer slept through that.
+function checkSeason() {
+    if (autoOption)
+        autoOption.text = autoLabel();
+    const shown = resolveTheme(pickedTheme);
+    if (shown === shownTheme)
+        return;
+    saveTheme(pickedTheme);
+    showTheme(shown);
+}
+function checkAtMidnight() {
+    const now = new Date();
+    setTimeout(() => {
+        checkSeason();
+        checkAtMidnight();
+    }, addDays(now, 1).getTime() - now.getTime() + 1000);
+}
+checkAtMidnight();
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden)
+        checkSeason();
+});
+if (themePicker) {
+    let holidays = null;
+    for (const theme of THEMES) {
+        const option = new Option(theme.auto ? autoLabel() : optionText(theme), theme.id);
+        if (theme.auto)
+            autoOption = option;
+        if (!theme.holiday && !theme.auto) {
+            themePicker.add(option);
+            continue;
+        }
+        if (!holidays) {
+            holidays = document.createElement("optgroup");
+            holidays.label = "Holidays";
+            themePicker.appendChild(holidays);
+        }
+        holidays.appendChild(option);
+    }
+    themePicker.value = pickedTheme.id;
     themePicker.addEventListener("change", () => {
         const theme = THEMES.find((t) => t.id === themePicker.value);
         if (!theme)
             return;
+        pickedTheme = theme;
+        saveTheme(theme);
+        if (inPlace(theme))
+            return showTheme(resolveTheme(theme));
         try {
-            if (theme === THEMES[0])
-                localStorage.removeItem(THEME_KEY);
-            else
-                localStorage.setItem(THEME_KEY, theme.path);
             if (chats.includes(activeChat))
                 sessionStorage.setItem(RESUME_KEY, activeChat.id);
         }
         catch {
-            // Storage blocked -- the switch still happens, it just isn't remembered.
+            // Storage blocked -- the new page just opens on a new chat.
         }
-        location.href = new URL(theme.path, appRoot).href;
+        location.href = new URL(theme.path ?? "", appRoot).href;
     });
 }
 function takeResumedChat() {

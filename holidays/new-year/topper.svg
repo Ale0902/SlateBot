@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- A party hat: black and gold stripes, with a pom-pom. -->
+  <defs>
+    <clipPath id="cone"><path d="M12 36L24 6 36 36Z"/></clipPath>
+  </defs>
+  <path d="M12 36L24 6 36 36Z" fill="#16141c"/>
+  <g clip-path="url(#cone)" stroke="#e6b94a" stroke-width="3.2">
+    <path d="M4 30L44 12M4 21L44 3M4 39L44 21"/>
+  </g>
+  <path d="M12 36L24 6 36 36Z" fill="none" stroke="#f5d77e" stroke-width="0.8" stroke-linejoin="round"/>
+  <path d="M11.5 35.6Q24 39.6 36.5 35.6" fill="none" stroke="#f5d77e" stroke-width="2.6" stroke-linecap="round"/>
+  <g stroke="#f5d77e" stroke-width="1.6" stroke-linecap="round">
+    <path d="M24 5.5V1.2M24 5.5L20.4 2.4M24 5.5L27.6 2.4M24 5.5L19.6 6M24 5.5L28.4 6"/>
+  </g>
+  <circle cx="24" cy="5.5" r="2.2" fill="#fff1c1"/>
+</svg>

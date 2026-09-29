@@ -3,19 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  // Opens the theme picked last time (see THEMES in src/main.ts). This is
+  // Opens the theme picked last time (see THEMES in src/main.ts), or puts
+  // on the holiday picked for this page (holidays/holidays.css). This is
   // the default theme's page, so it runs before anything draws.
   try {
     const path = localStorage.getItem("celta-chat.themePath");
     if (path && /^[a-z0-9-]+\/$/.test(path)) location.replace(path);
+    const holiday = localStorage.getItem("celta-chat.holiday");
+    if (holiday && /^[a-z0-9-]+$/.test(holiday)) document.documentElement.dataset.holiday = holiday;
   } catch {}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gemma Chat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap">
+<!-- Geist, and each holiday's display font -- a font only downloads once a
+     theme uses it. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Creepster&family=Mountains+of+Christmas:wght@700&family=Pacifico&family=Suez+One&family=Uncial+Antiqua&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="holidays/holidays.css">
 </head>
 <body>
 <div class="app shell">

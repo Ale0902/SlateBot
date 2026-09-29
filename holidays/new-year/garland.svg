@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+  <!-- Gold and silver bead swags (round dots of a dashed line, spaced to
+       fit the swag exactly), hanging stars, a disco ball, and glints that
+       twinkle. -->
+  <style>
+    .glint { animation: twinkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .g2 { animation-delay: -0.6s; }
+    .g3 { animation-delay: -1.2s; }
+    @keyframes twinkle { 50% { opacity: 0.15; transform: scale(0.5); } }
+    @media (prefers-reduced-motion: reduce) { .glint { animation: none; } }
+  </style>
+  <defs>
+    <path id="star" d="M0-6L1.59-2.18 5.71-1.85 2.57.83 3.53 4.85 0 2.7-3.53 4.85-2.57.83-5.71-1.85-1.59-2.18Z"/>
+    <path id="glint" d="M0-1Q.15-.15 1 0 .15.15 0 1-.15.15-1 0-.15-.15 0-1Z"/>
+  </defs>
+  <path d="M0 4Q80 34 160 4" fill="none" stroke="#d9dde6" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 4.546"/>
+  <g stroke="#cdb27a" stroke-width="0.8">
+    <path d="M40 12.25V21.5M120 12.25V21.5M80 15V24.5"/>
+  </g>
+  <path d="M0 4Q80 26 160 4" fill="none" stroke="#e6b94a" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="0 5.4"/>
+  <g fill="#f5d77e" stroke="#b8892a" stroke-width="0.6" stroke-linejoin="round">
+    <use href="#star" transform="translate(40 27.5)"/>
+    <use href="#star" transform="translate(120 27.5)"/>
+  </g>
+  <circle cx="80" cy="30" r="5.5" fill="#c9ced8"/>
+  <g fill="none" stroke="#7d8697" stroke-width="0.6">
+    <path d="M74.5 30H85.5M75.3 27.2H84.7M75.3 32.8H84.7M80 24.5V35.5"/>
+    <ellipse cx="80" cy="30" rx="2.8" ry="5.5"/>
+  </g>
+  <circle cx="78" cy="28" r="1.3" fill="#fff" opacity="0.8"/>
+  <!-- Placed by their groups: the twinkle's transform would replace their own. -->
+  <g fill="#fff1c1">
+    <g transform="translate(20 22) scale(3)"><use class="glint" href="#glint"/></g>
+    <g transform="translate(100 31) scale(2.5)"><use class="glint g2" href="#glint"/></g>
+    <g transform="translate(145 20) scale(3)"><use class="glint g3" href="#glint"/></g>
+  </g>
+</svg>

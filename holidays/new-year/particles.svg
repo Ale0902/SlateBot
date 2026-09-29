@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+  <!-- Confetti: gold, champagne, silver, rose and lavender. -->
+  <defs>
+    <rect id="bit" x="-1.5" y="-3.5" width="3" height="7" rx="0.6"/>
+    <path id="curl" d="M-5 0Q-2.5-3 0 0T5 0" fill="none" stroke-width="1.4" stroke-linecap="round"/>
+  </defs>
+  <use href="#bit" fill="#f5d77e" transform="translate(30 30) rotate(20)"/>
+  <use href="#bit" fill="#ff8fb1" transform="translate(90 55) rotate(-35)"/>
+  <use href="#bit" fill="#d9dde6" transform="translate(160 25) rotate(60)"/>
+  <use href="#bit" fill="#fff1c1" transform="translate(220 70) rotate(-15)"/>
+  <use href="#bit" fill="#b89cff" transform="translate(60 110) rotate(45)"/>
+  <use href="#bit" fill="#f5d77e" transform="translate(130 95) rotate(-60)"/>
+  <use href="#bit" fill="#ff8fb1" transform="translate(200 130) rotate(25)"/>
+  <use href="#bit" fill="#d9dde6" transform="translate(25 170) rotate(-20)"/>
+  <use href="#bit" fill="#f5d77e" transform="translate(100 160) rotate(80)"/>
+  <use href="#bit" fill="#b89cff" transform="translate(170 190) rotate(-45)"/>
+  <use href="#bit" fill="#f5d77e" transform="translate(240 200) rotate(15)"/>
+  <use href="#bit" fill="#fff1c1" transform="translate(60 230) rotate(35)"/>
+  <use href="#bit" fill="#ff8fb1" transform="translate(140 240) rotate(-10)"/>
+  <use href="#curl" stroke="#f5d77e" transform="translate(150 140) rotate(30)"/>
+  <use href="#curl" stroke="#ff8fb1" transform="translate(35 120) rotate(-40)"/>
+  <use href="#curl" stroke="#d9dde6" transform="translate(215 100) rotate(70)"/>
+  <circle cx="120" cy="50" r="1.6" fill="#f5d77e"/>
+  <circle cx="45" cy="75" r="1.3" fill="#d9dde6"/>
+  <circle cx="235" cy="20" r="1.4" fill="#f5d77e"/>
+  <circle cx="185" cy="160" r="1.5" fill="#fff1c1"/>
+  <circle cx="80" cy="205" r="1.3" fill="#ff8fb1"/>
+  <circle cx="210" cy="245" r="1.2" fill="#d9dde6"/>
+</svg>

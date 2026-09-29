@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- A Santa hat. -->
+  <path d="M6 31C7 19 14 8 27 7 35 6.4 41 11 43 18 43.4 20 42 21.5 40 20.5 38 16.5 34 14 29.5 15 25 16 25.5 24 26.5 31Z" fill="#d62839"/>
+  <path d="M26.5 31C25.5 24 25 16 29.5 15 27.4 18 27.3 24 28.8 31Z" fill="#a51d2b"/>
+  <path d="M10 26C11 18 16 11 24 9.5" fill="none" stroke="#ff6b78" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+  <rect x="3" y="28.5" width="28" height="9" rx="4.5" fill="#f7f4ef"/>
+  <rect x="3" y="33" width="28" height="4.5" rx="2.25" fill="#ddd6cb"/>
+  <circle cx="41" cy="21.5" r="4.6" fill="#f7f4ef"/>
+  <circle cx="42.2" cy="23" r="2.6" fill="#ddd6cb"/>
+</svg>

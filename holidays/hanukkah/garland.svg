@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+  <!-- Blue, white and silver bunting, with a Star of David on the white. -->
+  <path d="M2 4.54L18 8.39 10 24.58Z" fill="#3d7bff"/>
+  <path d="M22 9.22L38 11.97 30 28.7Z" fill="#e9eff9"/>
+  <path d="M42 12.52L58 14.17 50 31.45Z" fill="#aab7cc"/>
+  <path d="M62 14.44L78 14.99 70 32.83Z" fill="#2458d6"/>
+  <path d="M82 14.99L98 14.44 90 32.83Z" fill="#3d7bff"/>
+  <path d="M102 14.17L118 12.52 110 31.45Z" fill="#e9eff9"/>
+  <path d="M122 11.97L138 9.22 130 28.7Z" fill="#aab7cc"/>
+  <path d="M142 8.39L158 4.54 150 24.58Z" fill="#2458d6"/>
+  <g fill="none" stroke="#1f4fb8" stroke-width="1" stroke-linejoin="round">
+    <path d="M30 12.1L33.64 18.3H26.36ZM30 20.3L33.64 14.1H26.36Z"/>
+    <path d="M110 14.8L113.64 21.1H106.36ZM110 23.2L113.64 16.9H106.36Z"/>
+  </g>
+  <path d="M0 4Q80 26 160 4" fill="none" stroke="#cfd8e6" stroke-width="1.2" opacity="0.7"/>
+</svg>

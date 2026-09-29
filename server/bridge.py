@@ -11,7 +11,8 @@ both jobs for it:
 - Reads link previews (title, description, thumbnail) for the page, which
   can't fetch other sites itself.
 - Serves the page itself at http://localhost:8765 (and a 2000s-messenger
-  skin of the same page at /retro/). A copy of the page
+  skin of the same page at /retro/, and the holiday themes' styles and
+  pictures from /holidays/). A copy of the page
   served some other way on this machine (e.g. VS Code Live Server on :5500)
   can call it too -- CORS allows any localhost origin, nothing else.
 
@@ -805,6 +806,7 @@ app = Starlette(
         Route('/styles.css', styles),
         Mount('/dist', StaticFiles(directory=os.path.join(ROOT, 'dist'), check_dir=False)),
         Mount('/retro', StaticFiles(directory=os.path.join(ROOT, 'retro'), html=True, check_dir=False)),
+        Mount('/holidays', StaticFiles(directory=os.path.join(ROOT, 'holidays'), check_dir=False)),
         Route('/api/tools', list_tools, methods=['GET']),
         Route('/api/tools/call', call_tool, methods=['POST']),
         Route('/ollama/api/chat', ollama_chat, methods=['POST']),

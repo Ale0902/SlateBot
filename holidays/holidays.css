@@ -1,0 +1,655 @@
+/* Holiday themes for the main page (../index.html): the same chat, dressed
+   up for a holiday. Picking one from the theme menu puts data-holiday on
+   <html> (src/main.ts -- the inline script in index.html does it on load,
+   before anything draws). Each theme is a palette below plus a few pictures
+   from its folder here:
+     garland.svg    hangs from the top bar, over the top of the chat
+     particles.svg  a tile that drifts across the chat window, twice: a near
+                    layer, and a smaller, fainter, slower far one
+     badge.svg      pinned to the top edge of your messages
+     topper.svg     perched on the message box's top-left corner
+   To add a holiday: copy a theme block, give it a folder, and list it in
+   THEMES in src/main.ts. */
+
+:root[data-holiday] {
+  --h-frame-width: 4px;
+  /* The garland's box, and how much of it the chat's first message clears. */
+  --h-garland-height: 40px;
+  --h-garland-clear: 36px;
+  /* Particle tiles (square) and their drift: one tile per --h-speed, in
+     the direction given (1 = right/down, -1 = left/up, 0 = still). */
+  --h-tile: 240px;
+  --h-tile-far: 150px;
+  --h-dir-x: 0;
+  --h-dir-y: 1;
+  --h-speed: 30s;
+  /* Display fonts differ a lot in size at the same font-size. */
+  --h-font-scale: 1;
+  --h-send-text: #fff;
+  --h-dot1: var(--accent-strong);
+  --h-dot2: var(--accent-strong);
+  --h-dot3: var(--accent-strong);
+}
+
+/* ---- The chat window ---- */
+
+:root[data-holiday] .workspace {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--h-backdrop);
+}
+
+/* Everything in the window sits above the drifting particles. */
+:root[data-holiday] .workspace > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Each particle layer reaches one tile past every edge, so moving it one
+   tile loops seamlessly. Moving it (not its background) keeps the work on
+   the GPU. */
+:root[data-holiday] .workspace::before,
+:root[data-holiday] .workspace::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--h-tile));
+  pointer-events: none;
+  background: var(--h-particles) 0 0 / var(--tile) var(--tile);
+  animation: holiday-drift var(--speed) linear infinite;
+}
+
+:root[data-holiday] .workspace::before {
+  --tile: var(--h-tile-far);
+  --speed: calc(var(--h-speed) * 0.9);
+  opacity: 0.3;
+}
+
+:root[data-holiday] .workspace::after {
+  --tile: var(--h-tile);
+  --speed: var(--h-speed);
+  opacity: 0.55;
+}
+
+/* Above the chat, so the garland hangs over it. */
+:root[data-holiday] .topbar {
+  z-index: 2;
+  background: var(--h-bar);
+}
+
+:root[data-holiday] .topbar::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: var(--h-garland-height);
+  background: var(--h-garland);
+  pointer-events: none;
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.45));
+}
+
+:root[data-holiday] .chat {
+  padding-top: calc(var(--h-garland-clear) + 18px);
+}
+
+:root[data-holiday] .chat::-webkit-scrollbar-thumb {
+  background: rgb(var(--accent-rgb) / 0.22);
+}
+
+/* The sidebar's edge becomes a stripe of the theme's pattern. */
+:root[data-holiday] .sidebar {
+  border-right: none;
+  background:
+    var(--h-frame) right top / var(--h-frame-width) 100% no-repeat,
+    var(--sidebar-bg);
+}
+
+:root[data-holiday] .brand-row::after {
+  content: var(--h-hero-icon);
+  margin-left: auto;
+  font-size: 16px;
+}
+
+:root[data-holiday] ::selection {
+  background: rgb(var(--accent-rgb) / 0.35);
+}
+
+/* ---- Messages ---- */
+
+/* Yours: framed in the theme's pattern, with its badge pinned on top. The
+   fill has to be solid -- the pattern is drawn behind the whole bubble. */
+:root[data-holiday] .msg.user .bubble {
+  position: relative;
+  border: var(--h-frame-width) solid transparent;
+  border-radius: 16px;
+  background:
+    linear-gradient(var(--h-user-fill), var(--h-user-fill)) padding-box,
+    var(--h-frame) border-box;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35), 0 0 22px var(--h-glow-soft);
+}
+
+:root[data-holiday] .msg.user .bubble::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  background: var(--h-badge) center / contain no-repeat;
+  transform: rotate(12deg);
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+  pointer-events: none;
+}
+
+/* Replies: a card, trimmed along the top in the same pattern, and only as
+   wide as it needs to be. */
+:root[data-holiday] .msg.bot:not(.greeting, .typing) .bubble {
+  width: fit-content;
+  max-width: min(760px, 78%);
+  padding: 16px 20px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background:
+    var(--h-frame) top / 100% var(--h-frame-width) no-repeat,
+    var(--h-bot-fill);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.3);
+}
+
+:root[data-holiday] .msg.greeting .bubble {
+  max-width: min(680px, 100%);
+  font-family: var(--h-font), Geist, sans-serif;
+  font-size: calc(24px * var(--h-font-scale));
+  line-height: 1.4;
+  color: var(--h-title);
+  text-shadow: 0 0 18px var(--h-glow);
+}
+
+:root[data-holiday] .typing span {
+  background: var(--h-dot1);
+}
+
+:root[data-holiday] .typing span:nth-child(2) {
+  background: var(--h-dot2);
+}
+
+:root[data-holiday] .typing span:nth-child(3) {
+  background: var(--h-dot3);
+}
+
+/* ---- Start view ---- */
+
+:root[data-holiday] .hero::before {
+  content: var(--h-hero-icon);
+  display: block;
+  margin-bottom: 12px;
+  font-size: 58px;
+  line-height: 1;
+  filter: drop-shadow(0 8px 20px var(--h-glow));
+  animation: holiday-bob 3.2s ease-in-out infinite;
+}
+
+:root[data-holiday] .hero-title {
+  font-family: var(--h-font), Geist, sans-serif;
+  font-size: calc(38px * var(--h-font-scale));
+  line-height: 1.25;
+  color: var(--h-title);
+  text-shadow: 0 0 28px var(--h-glow);
+}
+
+/* ---- The message box ---- */
+
+:root[data-holiday] .composer,
+:root[data-holiday] .disclaimer {
+  background: var(--h-bar);
+}
+
+:root[data-holiday] .workspace.is-empty .composer,
+:root[data-holiday] .workspace.is-empty .disclaimer {
+  background: none;
+}
+
+/* Same trick as your messages: a solid fill over the theme's pattern. */
+:root[data-holiday] .composer textarea {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--h-input-fill), var(--h-input-fill)) padding-box,
+    var(--h-input-frame) border-box;
+}
+
+:root[data-holiday] .composer textarea:focus {
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.2), 0 0 28px var(--h-glow);
+}
+
+:root[data-holiday] .input-wrap::after {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: -17px;
+  width: 52px;
+  height: 44px;
+  background: var(--h-topper) center / contain no-repeat;
+  transform: rotate(-16deg);
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.45));
+  pointer-events: none;
+}
+
+:root[data-holiday] button.send {
+  border-color: transparent;
+  background: var(--h-send);
+  color: var(--h-send-text);
+  box-shadow: 0 8px 20px var(--h-glow-soft);
+}
+
+@keyframes holiday-drift {
+  to {
+    transform: translate(calc(var(--h-dir-x) * var(--tile)), calc(var(--h-dir-y) * var(--tile)));
+  }
+}
+
+@keyframes holiday-bob {
+  50% {
+    transform: translateY(-6px) rotate(-3deg);
+  }
+}
+
+/* The message box sits closer to the edge here (see styles.css). */
+@media (max-width: 680px) {
+  :root[data-holiday] .input-wrap::after {
+    left: -8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-holiday] .workspace::before,
+  :root[data-holiday] .workspace::after,
+  :root[data-holiday] .hero::before {
+    animation: none;
+  }
+}
+
+/* ---- The themes, in calendar order ---- */
+
+/* 🥂 New Year's: black and gold, gold and silver bead swags, confetti. */
+:root[data-holiday="new-year"] {
+  --accent-rgb: 230 185 74;
+  --accent: #e6b94a;
+  --accent-strong: #f7dc8f;
+  --accent-deep: #8a6414;
+  --bg: #08070b;
+  --bg-elevated: #14121a;
+  --bg-soft: #1c1922;
+  --panel: #14121a;
+  --line: rgb(230 185 74 / 0.16);
+  --line-strong: rgb(230 185 74 / 0.3);
+  --text: #fbf6ea;
+  --muted: #cdc3aa;
+  --muted-2: #9a8f76;
+  --sidebar-bg: rgb(12 11 16 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(230 185 74 / 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgb(180 140 255 / 0.08), transparent 70%),
+    #09080c;
+  --h-bar: rgb(10 9 13 / 0.86);
+  --h-frame: linear-gradient(135deg, #7a5a12, #f5d77e 25%, #b8892a 50%, #fff1c1 72%, #8a6414);
+  --h-frame-width: 3px;
+  --h-user-fill: #1c1811;
+  --h-bot-fill: rgb(22 20 27 / 0.92);
+  --h-input-fill: #111016;
+  --h-input-frame: var(--h-frame);
+  --h-send: linear-gradient(135deg, #f7dc8f, #c8962c);
+  --h-send-text: #1a1406;
+  --h-glow: rgb(230 185 74 / 0.35);
+  --h-glow-soft: rgb(230 185 74 / 0.14);
+  --h-title: #f7dc8f;
+  --h-font: "Cinzel Decorative";
+  --h-font-scale: 0.82;
+  --h-hero-icon: "🥂";
+  --h-dot1: #f5d77e;
+  --h-dot2: #d9dde6;
+  --h-dot3: #ff8fb1;
+  --h-garland: url(new-year/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(new-year/particles.svg);
+  --h-tile: 260px;
+  --h-tile-far: 160px;
+  --h-speed: 24s;
+  --h-badge: url(new-year/badge.svg);
+  --h-topper: url(new-year/topper.svg);
+}
+
+/* 💘 Valentine's Day: rose and wine, strings of hearts, hearts floating up. */
+:root[data-holiday="valentines"] {
+  --accent-rgb: 255 92 138;
+  --accent: #ff5c8a;
+  --accent-strong: #ffa3bd;
+  --accent-deep: #a3173f;
+  --bg: #12070b;
+  --bg-elevated: #1f0c14;
+  --bg-soft: #28111b;
+  --panel: #1f0c14;
+  --line: rgb(255 92 138 / 0.16);
+  --line-strong: rgb(255 92 138 / 0.3);
+  --text: #fff1f5;
+  --muted: #e2b6c4;
+  --muted-2: #b28294;
+  --sidebar-bg: rgb(20 8 13 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(255 92 138 / 0.2), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 0% 100%, rgb(163 23 63 / 0.18), transparent 70%),
+    #13070c;
+  --h-bar: rgb(19 7 12 / 0.86);
+  --h-frame: repeating-linear-gradient(45deg, #ff5c8a 0 6px, #ffd1dc 6px 12px);
+  --h-user-fill: #2b0f1b;
+  --h-bot-fill: rgb(33 12 21 / 0.92);
+  --h-input-fill: #1a0a11;
+  --h-input-frame: linear-gradient(90deg, #ff5c8a, #ffb3c6, #ff5c8a);
+  --h-send: linear-gradient(135deg, #ff5c8a, #c2185b);
+  --h-glow: rgb(255 92 138 / 0.4);
+  --h-glow-soft: rgb(255 92 138 / 0.16);
+  --h-title: #ffa3bd;
+  --h-font: "Pacifico";
+  --h-font-scale: 0.95;
+  --h-hero-icon: "💘";
+  --h-dot1: #ff5c8a;
+  --h-dot2: #ffc2d1;
+  --h-dot3: #c9184a;
+  --h-garland: url(valentines/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(valentines/particles.svg);
+  --h-dir-y: -1;
+  --h-speed: 34s;
+  --h-badge: url(valentines/badge.svg);
+  --h-topper: url(valentines/topper.svg);
+}
+
+/* ☘️ St. Patrick's Day: emerald and gold, a faint rainbow, shamrocks and
+   gold coins. */
+:root[data-holiday="st-patricks"] {
+  --accent-rgb: 46 204 113;
+  --accent: #2ecc71;
+  --accent-strong: #8ff0b4;
+  --accent-deep: #137a3f;
+  --bg: #04100a;
+  --bg-elevated: #0b1a12;
+  --bg-soft: #102419;
+  --panel: #0b1a12;
+  --line: rgb(46 204 113 / 0.15);
+  --line-strong: rgb(46 204 113 / 0.28);
+  --text: #effcf3;
+  --muted: #aad7ba;
+  --muted-2: #7aa98b;
+  --sidebar-bg: rgb(6 16 11 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(circle at 100% 100%, transparent 30%,
+      rgb(255 80 80 / 0.06) 31% 33%, rgb(255 170 60 / 0.06) 33% 35%,
+      rgb(255 230 90 / 0.06) 35% 37%, rgb(80 220 120 / 0.06) 37% 39%,
+      rgb(80 160 255 / 0.06) 39% 41%, rgb(160 110 255 / 0.06) 41% 43%, transparent 44%),
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(46 204 113 / 0.16), transparent 70%),
+    #05110b;
+  --h-bar: rgb(5 15 10 / 0.86);
+  --h-frame: repeating-linear-gradient(45deg, #1f9d55 0 7px, #f2c94c 7px 10px, #0f6b36 10px 17px, #f2c94c 17px 20px);
+  --h-user-fill: #0d2116;
+  --h-bot-fill: rgb(11 28 19 / 0.92);
+  --h-input-fill: #08170f;
+  --h-input-frame: linear-gradient(90deg, #1f9d55, #f2c94c, #1f9d55);
+  --h-send: linear-gradient(135deg, #f7d774, #d4a72c);
+  --h-send-text: #1b1403;
+  --h-glow: rgb(46 204 113 / 0.35);
+  --h-glow-soft: rgb(46 204 113 / 0.14);
+  --h-title: #8ff0b4;
+  --h-font: "Uncial Antiqua";
+  --h-font-scale: 0.9;
+  --h-hero-icon: "☘️";
+  --h-dot1: #2ecc71;
+  --h-dot2: #f2c94c;
+  --h-dot3: #8ff0b4;
+  --h-garland: url(st-patricks/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(st-patricks/particles.svg);
+  --h-tile: 260px;
+  --h-tile-far: 170px;
+  --h-badge: url(st-patricks/badge.svg);
+  --h-topper: url(st-patricks/topper.svg);
+}
+
+/* 🎆 Fourth of July: navy with red and white, flag bunting, falling stars. */
+:root[data-holiday="fourth-of-july"] {
+  --accent-rgb: 107 140 255;
+  --accent: #6b8cff;
+  --accent-strong: #b9ccff;
+  --accent-deep: #2a3f9e;
+  --bg: #050a18;
+  --bg-elevated: #0c1530;
+  --bg-soft: #121d3e;
+  --panel: #0c1530;
+  --line: rgb(107 140 255 / 0.16);
+  --line-strong: rgb(107 140 255 / 0.3);
+  --text: #f4f7ff;
+  --muted: #b5c1de;
+  --muted-2: #8391b5;
+  --sidebar-bg: rgb(6 11 26 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(107 140 255 / 0.2), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgb(230 57 70 / 0.12), transparent 70%),
+    #060b1a;
+  --h-bar: rgb(6 11 26 / 0.86);
+  --h-frame: repeating-linear-gradient(45deg, #e63946 0 6px, #f4f4f4 6px 12px, #2f4fd6 12px 18px);
+  --h-user-fill: #101a3a;
+  --h-bot-fill: rgb(13 21 46 / 0.92);
+  --h-input-fill: #0a1128;
+  --h-input-frame: linear-gradient(90deg, #e63946, #f4f4f4, #2f4fd6);
+  --h-send: linear-gradient(135deg, #ff4d5e, #b3122a);
+  --h-glow: rgb(107 140 255 / 0.35);
+  --h-glow-soft: rgb(230 57 70 / 0.14);
+  --h-title: #f4f7ff;
+  --h-font: "Alfa Slab One";
+  --h-font-scale: 0.85;
+  --h-hero-icon: "🎆";
+  --h-dot1: #e63946;
+  --h-dot2: #f4f4f4;
+  --h-dot3: #6b8cff;
+  --h-garland: url(fourth-of-july/garland.svg) 0 0 / 136px 34px repeat-x;
+  --h-particles: url(fourth-of-july/particles.svg);
+  --h-tile: 260px;
+  --h-tile-far: 170px;
+  --h-speed: 40s;
+  --h-badge: url(fourth-of-july/badge.svg);
+  --h-topper: url(fourth-of-july/topper.svg);
+}
+
+/* 🎃 Halloween: a moonlit night, cobwebs in the corners, bats flying past. */
+:root[data-holiday="halloween"] {
+  --accent-rgb: 255 138 31;
+  --accent: #ff8a1f;
+  --accent-strong: #ffc07a;
+  --accent-deep: #a34700;
+  --bg: #0b0710;
+  --bg-elevated: #160e1e;
+  --bg-soft: #1e1429;
+  --panel: #160e1e;
+  --line: rgb(255 138 31 / 0.16);
+  --line-strong: rgb(255 138 31 / 0.3);
+  --text: #fff4e8;
+  --muted: #cbb8d9;
+  --muted-2: #9481a8;
+  --sidebar-bg: rgb(12 8 17 / 0.95);
+
+  /* A crescent moon: a lit disc with a night-colored one over most of it.
+     Its glow fades in from nothing, so there's no glow to show where the
+     night-colored disc sticks out. */
+  --h-backdrop:
+    radial-gradient(circle at calc(100% - 196px) 140px, #0b0710 0 26px, transparent 27px),
+    radial-gradient(circle at calc(100% - 210px) 150px, #f6e7bd 0 29px,
+      rgb(255 226 150 / 0) 29.5px, rgb(255 226 150 / 0.06) 62px, transparent 110px),
+    radial-gradient(ellipse 60% 45% at 50% 115%, rgb(255 138 31 / 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 0%, rgb(123 44 191 / 0.18), transparent 70%),
+    #0b0710;
+  --h-bar: rgb(11 7 16 / 0.86);
+  --h-frame: linear-gradient(135deg, #ff8a1f, #ffb347 35%, #9b4dff 70%, #5b1fa8);
+  --h-frame-width: 3px;
+  --h-user-fill: #22130a;
+  --h-bot-fill: rgb(24 15 33 / 0.92);
+  --h-input-fill: #130c19;
+  --h-input-frame: linear-gradient(90deg, #ff8a1f, #9b4dff, #ff8a1f);
+  --h-send: linear-gradient(135deg, #ffa040, #e0650a);
+  --h-send-text: #1c0d02;
+  --h-glow: rgb(255 138 31 / 0.4);
+  --h-glow-soft: rgb(255 138 31 / 0.15);
+  --h-title: #ff9a3c;
+  --h-font: "Creepster";
+  --h-font-scale: 1.15;
+  --h-hero-icon: "🎃";
+  --h-dot1: #ff8a1f;
+  --h-dot2: #9b4dff;
+  --h-dot3: #7cc242;
+  --h-garland:
+    url(halloween/garland.svg) 0 0 / 160px 40px repeat-x,
+    url(halloween/web.svg) left top / 120px 120px no-repeat,
+    url(halloween/web-right.svg) right top / 120px 120px no-repeat;
+  --h-garland-height: 120px;
+  --h-particles: url(halloween/particles.svg);
+  --h-tile: 260px;
+  --h-tile-far: 170px;
+  --h-dir-x: -1;
+  --h-dir-y: 0;
+  --h-speed: 45s;
+  --h-badge: url(halloween/badge.svg);
+  --h-topper: url(halloween/topper.svg);
+}
+
+/* 🦃 Thanksgiving: harvest browns and amber, a vine of leaves, leaves
+   falling. */
+:root[data-holiday="thanksgiving"] {
+  --accent-rgb: 232 145 58;
+  --accent: #e8913a;
+  --accent-strong: #f6c27a;
+  --accent-deep: #9a4a14;
+  --bg: #120b06;
+  --bg-elevated: #1e140c;
+  --bg-soft: #281b11;
+  --panel: #1e140c;
+  --line: rgb(232 145 58 / 0.16);
+  --line-strong: rgb(232 145 58 / 0.3);
+  --text: #fff5e9;
+  --muted: #dcc2a6;
+  --muted-2: #a98e72;
+  --sidebar-bg: rgb(19 12 7 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(232 145 58 / 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgb(185 50 40 / 0.14), transparent 70%),
+    #130c07;
+  --h-bar: rgb(18 11 6 / 0.86);
+  --h-frame: repeating-linear-gradient(45deg, #b5462a 0 6px, #e8913a 6px 12px, #f3c77a 12px 14px, #6e2c12 14px 20px);
+  --h-user-fill: #25170c;
+  --h-bot-fill: rgb(31 21 13 / 0.92);
+  --h-input-fill: #170f08;
+  --h-input-frame: linear-gradient(90deg, #9a4a14, #e8913a, #f3c77a, #e8913a, #9a4a14);
+  --h-send: linear-gradient(135deg, #d9772b, #8f3a12);
+  --h-glow: rgb(232 145 58 / 0.35);
+  --h-glow-soft: rgb(232 145 58 / 0.14);
+  --h-title: #f6c27a;
+  --h-font: "Berkshire Swash";
+  --h-hero-icon: "🦃";
+  --h-dot1: #e8590c;
+  --h-dot2: #f59f00;
+  --h-dot3: #c92a2a;
+  --h-garland: url(thanksgiving/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(thanksgiving/particles.svg);
+  --h-tile: 260px;
+  --h-tile-far: 170px;
+  --h-speed: 28s;
+  --h-badge: url(thanksgiving/badge.svg);
+  --h-topper: url(thanksgiving/topper.svg);
+}
+
+/* 🕎 Hanukkah: midnight blue and silver, bunting, drifting sparkles. */
+:root[data-holiday="hanukkah"] {
+  --accent-rgb: 77 141 255;
+  --accent: #4d8dff;
+  --accent-strong: #a9c8ff;
+  --accent-deep: #1f4fb8;
+  --bg: #050b1a;
+  --bg-elevated: #0b1530;
+  --bg-soft: #111d3d;
+  --panel: #0b1530;
+  --line: rgb(77 141 255 / 0.16);
+  --line-strong: rgb(77 141 255 / 0.3);
+  --text: #f2f6ff;
+  --muted: #b4c4e2;
+  --muted-2: #8395ba;
+  --sidebar-bg: rgb(6 11 26 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(77 141 255 / 0.2), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 50% 110%, rgb(207 224 255 / 0.08), transparent 70%),
+    #060c1c;
+  --h-bar: rgb(6 11 26 / 0.86);
+  --h-frame: linear-gradient(135deg, #cfd8e6, #fff 20%, #8ea3c4 42%, #4d8dff 62%, #cfe0ff 82%, #8ea3c4);
+  --h-frame-width: 3px;
+  --h-user-fill: #0f1b3b;
+  --h-bot-fill: rgb(12 22 48 / 0.92);
+  --h-input-fill: #0a1227;
+  --h-input-frame: var(--h-frame);
+  --h-send: linear-gradient(135deg, #4d8dff, #1f4fb8);
+  --h-glow: rgb(77 141 255 / 0.38);
+  --h-glow-soft: rgb(77 141 255 / 0.15);
+  --h-title: #cfe0ff;
+  --h-font: "Suez One";
+  --h-font-scale: 0.95;
+  --h-hero-icon: "🕎";
+  --h-dot1: #4d8dff;
+  --h-dot2: #dbe7ff;
+  --h-dot3: #8ea3c4;
+  --h-garland: url(hanukkah/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(hanukkah/particles.svg);
+  --h-speed: 36s;
+  --h-badge: url(hanukkah/badge.svg);
+  --h-topper: url(hanukkah/topper.svg);
+}
+
+/* 🎄 Christmas: pine green, red and gold, twinkling lights, snow. */
+:root[data-holiday="christmas"] {
+  /* Gold for tints and lines -- red ones go muddy on the green. */
+  --accent-rgb: 244 210 122;
+  --accent: #d4343f;
+  --accent-strong: #f4d27a;
+  --accent-deep: #8c1c24;
+  --bg: #04100b;
+  --bg-elevated: #0b1b13;
+  --bg-soft: #10261a;
+  --panel: #0b1b13;
+  --line: rgb(244 210 122 / 0.14);
+  --line-strong: rgb(244 210 122 / 0.26);
+  --text: #f3fbf6;
+  --muted: #bad4c4;
+  --muted-2: #87a695;
+  --sidebar-bg: rgb(5 16 11 / 0.95);
+
+  --h-backdrop:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgb(212 52 63 / 0.14), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 50% 110%, rgb(27 94 58 / 0.35), transparent 70%),
+    #05110c;
+  --h-bar: rgb(5 16 11 / 0.86);
+  --h-frame: repeating-linear-gradient(45deg, #d4343f 0 7px, #fbf7f2 7px 14px);
+  --h-user-fill: #10271b;
+  --h-bot-fill: rgb(11 29 20 / 0.92);
+  --h-input-fill: #08170f;
+  --h-input-frame: linear-gradient(90deg, #b8862b, #f4d27a, #b8862b, #f4d27a, #b8862b);
+  --h-send: linear-gradient(135deg, #e0474f, #9e1f28);
+  --h-glow: rgb(244 210 122 / 0.3);
+  --h-glow-soft: rgb(212 52 63 / 0.16);
+  --h-title: #fdf6ec;
+  --h-font: "Mountains of Christmas";
+  --h-font-scale: 1.15;
+  --h-hero-icon: "🎄";
+  --h-dot1: #e0474f;
+  --h-dot2: #f4d27a;
+  --h-dot3: #3fbf74;
+  --h-garland: url(christmas/garland.svg) 0 0 / 160px 40px repeat-x;
+  --h-particles: url(christmas/particles.svg);
+  --h-badge: url(christmas/badge.svg);
+  --h-topper: url(christmas/topper.svg);
+}

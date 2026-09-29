@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- Hearts, floating up. -->
+  <defs>
+    <path id="heart" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </defs>
+  <use href="#heart" fill="#ff4d6d" opacity="0.85" transform="translate(50 40) rotate(-12) scale(.6) translate(-12 -12)"/>
+  <use href="#heart" fill="#ffc2d1" opacity="0.8" transform="translate(165 65) rotate(10) scale(.45) translate(-12 -12)"/>
+  <use href="#heart" fill="#ff8fab" opacity="0.8" transform="translate(210 165) rotate(-8) scale(.7) translate(-12 -12)"/>
+  <use href="#heart" fill="#c9184a" opacity="0.9" transform="translate(95 145) rotate(14) scale(.5) translate(-12 -12)"/>
+  <use href="#heart" fill="#ffb3c6" opacity="0.7" transform="translate(30 205) rotate(-16) scale(.42) translate(-12 -12)"/>
+  <use href="#heart" fill="#ff4d6d" opacity="0.75" transform="translate(150 215) rotate(6) scale(.55) translate(-12 -12)"/>
+  <use href="#heart" fill="#ffc2d1" opacity="0.7" transform="translate(215 25) rotate(-6) scale(.35) translate(-12 -12)"/>
+  <use href="#heart" fill="#ff8fab" opacity="0.6" transform="translate(115 85) rotate(18) scale(.3) translate(-12 -12)"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="40" viewBox="0 0 48 40">
+  <!-- An Uncle Sam hat. -->
+  <defs>
+    <path id="crown" d="M15 32L16.5 7H31.5L33 32A9 2.2 0 0 1 15 32Z"/>
+    <path id="star" d="M0-6L1.59-2.18 5.71-1.85 2.57.83 3.53 4.85 0 2.7-3.53 4.85-2.57.83-5.71-1.85-1.59-2.18Z"/>
+    <clipPath id="clip"><use href="#crown"/></clipPath>
+  </defs>
+  <ellipse cx="24" cy="32.5" rx="18" ry="4" fill="#2f4fd6" stroke="#9ec5ff" stroke-width="0.7"/>
+  <use href="#crown" fill="#f4f4f4"/>
+  <g clip-path="url(#clip)">
+    <path d="M15.5 0h3v40h-3zM21.5 0h3v40h-3zM27.5 0h3v40h-3z" fill="#d62839"/>
+    <rect x="10" y="23" width="28" height="6" fill="#2f4fd6"/>
+  </g>
+  <g fill="#fff">
+    <use href="#star" transform="translate(18.5 26) scale(.36)"/>
+    <use href="#star" transform="translate(24 26) scale(.36)"/>
+    <use href="#star" transform="translate(29.5 26) scale(.36)"/>
+  </g>
+  <ellipse cx="24" cy="7" rx="7.5" ry="1.8" fill="#dcdcdc"/>
+  <use href="#crown" fill="none" stroke="#9ec5ff" stroke-width="0.7" stroke-linejoin="round"/>
+</svg>
