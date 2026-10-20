@@ -75,8 +75,8 @@ img { max-width: 100%; display: block; }
   padding-bottom: 28px;
   font: 14px/1 var(--mono);
 }
-.site-header .name { text-decoration: none; font-weight: 600; }
-.site-header nav { display: flex; gap: 20px; }
+/* Projects on the left, GitHub on the right. */
+.site-header nav { flex: 1; display: flex; justify-content: space-between; gap: 20px; }
 .site-header nav a { text-decoration: none; color: var(--muted); }
 .site-header nav a:hover,
 .site-header nav a[aria-current] { color: var(--ink); }
