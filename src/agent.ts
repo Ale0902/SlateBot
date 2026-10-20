@@ -187,8 +187,16 @@ const SMALL_TALK =
   "(?:" +
   [
     "(?:hi|hello|hey|heya|hiya|yo|sup|howdy|greetings|good (?:morning|afternoon|evening|day)|gm)(?: there| slate| slate bot| again| everyone)?",
-    "(?:how are (?:you|u|ya)|how're you|how are things|how(?:'s| is) it going|how(?:'s| is) your day(?: going)?|how have you been|how(?:'s| is) everything|what(?:'s| is) up|whats up|wyd|what are you up to)(?: doing)?(?: today| lately)?",
+    // "How are you", "how you doing", "how's it hanging", "how's life treating you"...
+    "how(?:'s|s| is| are| are you| you| ya| u|'re you| have you| you been| ya been)? (?:you|ya|u|doing|doin|been|going)(?: [a-z']+){0,3}",
+    "how(?:'s|s| is| are| has| have) (?:it|things|life|everything|your (?:day|night|week|weekend|morning|evening|afternoon))(?: (?:going|goin|hanging|hangin|been|rolling|treating you|treatin you|today|tonight|so far|lately))*",
+    "(?:what(?:'s| is)|whats|wats|sup|so) (?:up|good|new|happening|poppin|popping|cracking|crackin|going on)(?: with you)?(?: today| lately)?",
+    "wyd|what are you up to(?: today)?|what you up to",
     "(?:who|what) are you|what(?:'s| is) your name|what can you do|tell me about yourself|are you (?:an? )?(?:ai|bot|robot|human|real|person)",
+    "(?:what(?:'s| is| are)|whats) your (?:favorite|favourite) [a-z']+(?: [a-z']+)?",
+    "(?:you|u) (?:good|ok|okay|alright|there)",
+    "(?:and )?(?:you|u|yourself|wbu|hbu|how about you|what about you)",
+    "(?:yeah|yea|yes|yep|yup|no|nope|nah|sure|of course|same|me too|me neither|not much|nothing much|not a lot|all good|fair enough|true|right|exactly|agreed|nice to meet you|good to see you|long time no see)",
     "(?:thanks|thank you|thx|ty|ok|okay|got it|makes sense|sounds good|lol|lmao|haha+|bye|goodbye|see you|see ya|cya|good night|goodnight|gn)(?: so much| a lot| again| slate)?",
     "(?:that's |thats |that is )?(?:cool|nice|great|awesome|perfect|interesting|funny)",
     "(?:let's|lets|can we|wanna|want to) (?:chat|talk)(?: for a bit| for a while)?",
