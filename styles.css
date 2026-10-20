@@ -18,7 +18,7 @@
   --accent-strong: #8fd0f2;
   --accent-deep: #1f5f99;
   --sidebar-bg: #080c11;
-  --bar: #06090d;
+  --bar: var(--bg);
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -544,6 +544,7 @@ button, textarea {
 }
 
 .topbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -557,60 +558,28 @@ button, textarea {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  /* Stops a long chat title short of the centered AlejoDev link. */
+  max-width: calc(50% - 90px);
 }
 
+/* The chat's name is already in Recents (renamed from there too); main.ts
+   still writes to this, so it stays in the page, just not shown. */
 .title-pill {
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  padding: 5px 8px;
-  border-radius: 4px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text);
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  display: none;
 }
 
-/* Click the title to rename the chat (see startRename in main.ts). */
-.title-pill:hover {
-  border-color: var(--line-strong);
-}
-
-.title-pill:focus-visible,
-.title-pill.editing {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: none;
-}
-
-.title-pill.editing {
-  min-width: 160px;
-  background: var(--bg-elevated);
-  text-overflow: clip;
-  cursor: text;
-}
-
-/* Back to the portfolio, in its serif. */
+/* Back to the portfolio, in its serif, centered in the top bar. */
 .home-link {
-  margin-right: 8px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   padding: 4px 6px;
   color: var(--text);
-  font: 600 18px/1 var(--serif);
+  font: 600 23px/1 var(--serif);
   text-decoration: none;
   white-space: nowrap;
   transition: color 0.15s ease;
-}
-
-.home-link::before {
-  content: "← ";
-  color: var(--muted-2);
-  font-family: var(--sans);
-  font-weight: 400;
 }
 
 .home-link:hover {
@@ -1201,10 +1170,17 @@ button.send:disabled {
     padding: 12px 12px 10px;
   }
 
-  /* The chat's title gets the room; the theme menu would otherwise grow to
-     its longest option ("Automatic: ..."). */
+  /* No room to center it next to the theme menu: it goes on the left. */
   .title-wrap {
-    flex: 1;
+    display: none;
+  }
+
+  .home-link {
+    position: static;
+    transform: none;
+    margin-right: auto;
+    padding: 4px 0;
+    font-size: 19px;
   }
 
   .topbar-actions {
