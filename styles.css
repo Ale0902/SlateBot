@@ -1132,8 +1132,33 @@ button.send:disabled {
   }
 
   .topbar {
-    padding-left: 12px;
-    padding-right: 12px;
+    gap: 10px;
+    padding: 12px 12px 10px;
+  }
+
+  /* The chat's title gets the room; the theme menu would otherwise grow to
+     its longest option ("Automatic: ..."). */
+  .title-wrap {
+    flex: 1;
+  }
+
+  .topbar-actions {
+    flex-shrink: 0;
+  }
+
+  .theme-picker {
+    max-width: 150px;
+    text-overflow: ellipsis;
+  }
+
+  /* Not wired up to anything yet. */
+  .share-btn {
+    display: none;
+  }
+
+  /* Under 16px, phones zoom the page in when the box is tapped. */
+  textarea {
+    font-size: 16px;
   }
 
   .composer {

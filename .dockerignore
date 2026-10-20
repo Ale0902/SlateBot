@@ -1,0 +1,8 @@
+.git
+node_modules
+logs
+charts
+site
+deploy
+.env
+**/__pycache__

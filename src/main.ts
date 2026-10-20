@@ -1371,7 +1371,8 @@ aboutBtn?.addEventListener("click", () => {
 // Each theme is its own page running this same script, so they share every
 // saved chat. To add one: build its page with the same element ids, set
 // data-theme-id on its <html>, add a <select id="themePicker"> somewhere,
-// and list it here. The first theme is the default, served at the root.
+// and list it here. The first theme is served at the root; new visitors
+// start on Retro (see index.html's first script).
 //
 // Holidays dress up whichever page is open instead of being one: picking
 // one puts data-holiday on its <html> -- styled by that page, in
@@ -1645,8 +1646,9 @@ function saveTheme(theme: Theme): void {
   const shown = resolveTheme(theme);
   const path = theme.path ?? pageTheme.path;
   try {
-    if (path) localStorage.setItem(THEME_KEY, path);
-    else localStorage.removeItem(THEME_KEY);
+    // Saved even when empty (Modern, at the root): index.html sends anyone
+    // with nothing saved to Retro, the default for new visitors.
+    localStorage.setItem(THEME_KEY, path ?? "");
     if (shown.holiday) localStorage.setItem(HOLIDAY_KEY, shown.id);
     else localStorage.removeItem(HOLIDAY_KEY);
     if (theme.auto) localStorage.setItem(AUTO_KEY, "1");

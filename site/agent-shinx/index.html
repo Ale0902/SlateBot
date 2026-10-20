@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Shinx — alejodev</title>
+<meta name="description" content="Agent Shinx is a Discord bot with live sports scores, standings, F1 updates, Steam sales, song picks, and AI chat.">
+<meta property="og:title" content="Agent Shinx">
+<meta property="og:description" content="A Discord bot with live scores, standings, F1 updates, Steam sales, and AI chat.">
+<meta property="og:url" content="https://alejodev.com/agent-shinx/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://alejodev.com/agent-shinx/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css?v=2">
+<script src="/assets/gallery.js" defer></script>
+</head>
+<body>
+<header class="site-header wrap">
+  <a class="name" href="/">alejodev</a>
+  <nav aria-label="Site">
+    <a href="/#projects" aria-current="page">Projects</a>
+    <a href="https://github.com/Ale0902">GitHub</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <p class="eyebrow"><a class="back" href="/#projects">← All projects</a></p>
+    <h1>Agent Shinx</h1>
+    <p class="lede">
+      A Discord bot for keeping a server up to date: live scores and
+      standings, Formula 1 weekends, game showcases, Steam sales, a song of
+      the day — and an AI chat mode that runs on my own hardware.
+    </p>
+    <div class="actions">
+      <!-- The invite link: replace REPLACE_WITH_CLIENT_ID with the bot's
+           Application ID (Discord Developer Portal > General Information).
+           permissions=117760 is exactly the five permissions listed under
+           "Add it to your server" below. -->
+      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=REPLACE_WITH_CLIENT_ID&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
+      <a class="button" href="#commands">See the commands</a>
+    </div>
+  </div>
+
+  <section id="commands" aria-labelledby="commands-title">
+    <h2 id="commands-title">Commands</h2>
+    <p class="section-note">
+      Every command works as a slash command, or typed with a <code>!</code>
+      prefix. Long results come back as pages you can flip through.
+    </p>
+
+    <div class="command-groups">
+      <div>
+        <h3>Football &amp; baseball</h3>
+        <dl>
+          <dt>/nfl</dt><dd>This week's games and live scores</dd>
+          <dt>/nfllive</dt><dd>Only the games in progress</dd>
+          <dt>/nflresults</dt><dd>Final scores from this week</dd>
+          <dt>/nflstandings</dt><dd>Division standings and the playoff picture</dd>
+          <dt>/cfb</dt><dd>Ranked college games, with a USF spotlight</dd>
+          <dt>/mlb</dt><dd>This week's series and team records</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>Soccer</h3>
+        <dl>
+          <dt>/soccer</dt><dd>This week's matches, a page per competition</dd>
+          <dt>/livesoccer</dt><dd>Only the matches in progress</dd>
+          <dt>/soccerresults</dt><dd>Today's final scores</dd>
+          <dt>/prem · /laliga</dt><dd>Premier League and La Liga tables</dd>
+          <dt>/ucl</dt><dd>Champions League table or bracket</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>Formula 1</h3>
+        <dl>
+          <dt>/f1</dt><dd>Whether it's a race weekend, and the session times</dd>
+          <dt>/f1standings</dt><dd>Drivers' and constructors' championships</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>AI chat</h3>
+        <dl>
+          <dt>/chat</dt><dd>Talk to the bot; it can search the web while it answers</dd>
+          <dt>/forget</dt><dd>Clear your current conversation</dd>
+          <dt>/forgetme</dt><dd>Delete everything it remembers about you</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>Music &amp; games</h3>
+        <dl>
+          <dt>/recsong</dt><dd>A random pick from the server's song list</dd>
+          <dt>/top5songs</dt><dd>The current top 5 on the iTunes charts</dd>
+          <dt>/steamsales</dt><dd>Popular games on sale on Steam right now</dd>
+          <dt>/mcstatus</dt><dd>Whether the Minecraft server is up</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>Everything else</h3>
+        <dl>
+          <dt>/8ball · /coin_flip</dt><dd>For settling arguments</dd>
+          <dt>/setchannel</dt><dd>Choose where automatic posts go</dd>
+          <dt>/help</dt><dd>The full list, inside Discord</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="feeds-title">
+    <h2 id="feeds-title">Automatic posts</h2>
+    <p class="section-note">
+      Nothing posts until a server admin picks a channel for it with
+      <code>/setchannel</code>, so you only get the feeds you want.
+    </p>
+    <ul class="feeds">
+      <li><span>Song of the Day</span><span class="when">daily, 1 pm ET</span></li>
+      <li><span>F1 session and race updates</span><span class="when">race weekends</span></li>
+      <li><span>Nintendo Direct, State of Play and Xbox Showcase announcements, with reminders before they air</span><span class="when">as announced</span></li>
+      <li><span>Steam sales on popular titles</span><span class="when">as they start</span></li>
+      <li><span>Manga and comic release announcements</span><span class="when">on release</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="shots-title">
+    <h2 id="shots-title">Screenshots</h2>
+    <p class="section-note">What it looks like in a server.</p>
+
+    <!-- Add a screenshot: put the file in /assets/shots/ and copy this in,
+         with its real width and height (stops the page jumping as it loads).
+
+      <figure>
+        <a href="/assets/shots/nfl.png">
+          <img src="/assets/shots/nfl.png" alt="The /nfl command showing this week's games" width="1280" height="800" loading="lazy" decoding="async">
+        </a>
+        <figcaption>/nfl during a Sunday slate</figcaption>
+      </figure>
+    -->
+    <div class="gallery"></div>
+    <p class="gallery-empty">Screenshots are on the way.</p>
+  </section>
+
+  <section id="invite" aria-labelledby="invite-title">
+    <h2 id="invite-title">Add it to your server</h2>
+    <p class="section-note">
+      You need the Manage Server permission on the server you're adding it
+      to. The bot asks for only what it uses:
+    </p>
+    <ul class="permissions">
+      <li><strong>View Channels</strong> and <strong>Read Message History</strong> — to see the commands you send it</li>
+      <li><strong>Send Messages</strong> — to answer them</li>
+      <li><strong>Embed Links</strong> — scores, standings and sales are sent as embeds</li>
+      <li><strong>Attach Files</strong> — for charts and album artwork</li>
+    </ul>
+    <p class="section-note">
+      It can't kick, ban, manage roles, or change anything about your server.
+      After it joins, run <code>/setchannel</code> to turn on the automatic posts.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=REPLACE_WITH_CLIENT_ID&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer wrap">
+  <span>© 2026 Alejandro Perez</span>
+  <span>alejodev.com</span>
+</footer>
+</body>
+</html>

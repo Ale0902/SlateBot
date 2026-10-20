@@ -2077,10 +2077,9 @@ function saveTheme(theme) {
     const shown = resolveTheme(theme);
     const path = theme.path ?? pageTheme.path;
     try {
-        if (path)
-            localStorage.setItem(THEME_KEY, path);
-        else
-            localStorage.removeItem(THEME_KEY);
+        // Saved even when empty (Modern, at the root): index.html sends anyone
+        // with nothing saved to Retro, the default for new visitors.
+        localStorage.setItem(THEME_KEY, path ?? "");
         if (shown.holiday)
             localStorage.setItem(HOLIDAY_KEY, shown.id);
         else

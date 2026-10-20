@@ -1,0 +1,64 @@
+# alejodev.com on the LLM PC. From this folder:
+#
+#   docker compose up -d --build     start, or apply changes
+#   docker compose logs -f           watch both
+#   docker compose down              stop
+#
+# Visitors reach these only through the Cloudflare Tunnel that already runs
+# on this machine (etched-tunnel, set up in ~/etched-jukebox/cloudflared):
+# nothing here is published on a host port. The tunnel sends alejodev.com,
+# www and slate to alejodev-web, which serves the portfolio and proxies
+# Slate to slate-bridge.
+name: alejodev
+
+services:
+  web:
+    image: caddy:2.11-alpine
+    container_name: alejodev-web
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../site:/srv/site:ro
+      - caddy_data:/data
+    networks: [jukebox]
+    depends_on: [slate]
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  slate:
+    build:
+      context: ..
+      dockerfile: deploy/bridge.Dockerfile
+    container_name: slate-bridge
+    restart: unless-stopped
+    # Any of bridge.py's limits (DAILY_CHAT_CAP, CHAT_PER_MINUTE...) or a
+    # BRAVE_API_KEY can go in a .env in the project root.
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      # Ollama and SearXNG run on this same machine, outside Docker.
+      SLATEBOT_HOST: host.docker.internal
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ../logs:/app/logs
+    networks: [jukebox]
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz', timeout=5)"]
+      interval: 60s
+      timeout: 10s
+      start_period: 30s
+    logging: *logging
+
+volumes:
+  caddy_data:
+
+networks:
+  # The jukebox's network, which the tunnel is already on.
+  jukebox:
+    external: true

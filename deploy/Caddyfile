@@ -1,0 +1,130 @@
+# alejodev.com, served by Caddy (https://caddyserver.com) in the alejodev-web
+# container (see docker-compose.yml).
+#
+#   alejodev.com        the portfolio, as plain files from site/
+#   slate.alejodev.com  Slate, proxied to the slate-bridge container
+#
+# Visitors come in through the Cloudflare Tunnel, which handles HTTPS, so
+# Caddy serves plain HTTP on the Docker network and never sees the internet
+# directly. After editing this:  docker compose restart web
+{
+	servers {
+		# Every request arrives from cloudflared, on the Docker network;
+		# Cloudflare puts the visitor's own address in Cf-Connecting-IP.
+		trusted_proxies static private_ranges
+		client_ip_headers Cf-Connecting-IP
+		# A slow client can't hold a connection open by trickling in headers.
+		timeouts {
+			read_header 10s
+			idle 2m
+		}
+	}
+}
+
+(common_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# Don't advertise what's serving the site (Caddy, or the bridge's uvicorn).
+		-Server
+	}
+	# Requests go to the container's output: docker compose logs web
+	log
+}
+
+http://www.alejodev.com {
+	redir https://alejodev.com{uri} permanent
+}
+
+http://alejodev.com {
+	import common_headers
+
+	root * /srv/site
+	encode zstd gzip
+
+	# Nothing on this site takes input, so it only answers GET and HEAD,
+	# and turns away any request with a body.
+	@not_read not method GET HEAD
+	respond @not_read 405
+	request_body {
+		max_size 1KB
+	}
+
+	# Everything comes from this domain: no third-party scripts, fonts or
+	# trackers. The one script is assets/gallery.js.
+	header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+	# Everything is rechecked on each visit (a quick "not modified" when it
+	# hasn't changed), so an edit shows up at once. Without this, Cloudflare
+	# keeps its own copy for hours and serves that instead.
+	header Cache-Control "no-cache"
+
+	# For an uptime monitor.
+	respond /healthz "ok" 200
+
+	# Notes left in folders (assets/shots/README.md) aren't part of the site.
+	@notes path *.md
+	respond @notes 404
+
+	file_server
+
+	handle_errors 404 {
+		rewrite * /404.html
+		file_server
+	}
+}
+
+http://slate.alejodev.com {
+	import common_headers
+
+	encode zstd gzip
+
+	# Rechecked on each visit, like the portfolio, or Cloudflare and phones
+	# keep serving an old stylesheet or script for hours after a change.
+	header ?Cache-Control "no-cache"
+
+	# The bridge checks every request's size itself (MAX_CHAT_BODY_BYTES,
+	# 3MB); this stops anything bigger before it reaches it.
+	request_body {
+		max_size 3MB
+	}
+
+	# The page's two small inline scripts (in index.html and retro/index.html)
+	# are allowed by their hashes -- rerun  python deploy/csp_hashes.py  and
+	# paste its output here whenever either one changes, or the saved theme
+	# stops loading. Images may come from any https site: link previews and
+	# image search results show other sites' pictures.
+	header Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-lADKPB6OAkNmK2roN21UTfwh1/tysMzw9jmWPC+oMXE=' 'sha256-ilF/Ks8eqa5HMPfIjD/DHZtZSxT9J9v4dLaB7tefL8w='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+	reverse_proxy slate-bridge:8765 {
+		# The bridge rate-limits by the last address in X-Forwarded-For
+		# (TRUST_PROXY=1): make that the visitor's, not cloudflared's.
+		header_up X-Forwarded-For {client_ip}
+		transport http {
+			dial_timeout 5s
+			# A reply can wait up to MAX_QUEUE_WAIT (120s) for its turn and
+			# then OLLAMA_TIMEOUT (180s) for the model; the bridge answers
+			# those itself, so this only catches the bridge hanging.
+			response_header_timeout 320s
+		}
+	}
+
+	# The bridge isn't running: say so plainly instead of a blank error.
+	handle_errors 502 503 504 {
+		header Content-Type "text/html; charset=utf-8"
+		header Retry-After "60"
+		respond <<HTML
+			<!DOCTYPE html>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<title>Slate is offline</title>
+			<body style="font: 17px/1.6 system-ui, sans-serif; max-width: 34em; margin: 15vh auto; padding: 0 16px">
+			<h1 style="font-family: Georgia, serif">Slate is offline right now.</h1>
+			<p>The server it runs on is down for the moment. Try again in a few minutes,
+			or head back to <a href="https://alejodev.com/">alejodev.com</a>.</p>
+			HTML 503
+	}
+}
