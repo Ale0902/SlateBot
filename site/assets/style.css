@@ -277,7 +277,8 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 .reveal-ready .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  /* border-color keeps the project cards' hover transition. */
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out, border-color 0.15s;
 }
 .reveal-ready .reveal.is-visible { opacity: 1; transform: none; }
 

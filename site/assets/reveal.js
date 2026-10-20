@@ -1,6 +1,7 @@
-// Fades everything on the Agent Shinx page in from below as it scrolls into
-// view: the header, the intro and its picture, each section and the pieces
-// inside them, and the footer, one after another.
+// Fades everything on the page in from below as it scrolls into view: the
+// header, the intro (and Agent Shinx's picture), each section and the
+// pieces inside them -- project cards, command groups, list items -- and
+// the footer, one after another. Used by the home page and Agent Shinx.
 //
 // Loaded in <head> without defer, so the page is marked before anything is
 // drawn and nothing flashes up before fading in. Skipped when the reader
@@ -15,8 +16,8 @@
   const TARGETS = [
     ".site-header",
     ".intro .eyebrow", ".intro h1", ".intro .lede", ".intro-avatar", ".hero-actions",
-    "main section > :not(.command-groups, .feeds, .permissions, .gallery)",
-    ".command-groups > div", ".feeds li", ".permissions li", ".gallery figure",
+    "main section > :not(.projects, .command-groups, .feeds, .permissions, .gallery)",
+    ".projects > .project", ".command-groups > div", ".feeds li", ".permissions li", ".gallery figure",
     ".site-footer",
   ].join(", ");
 
