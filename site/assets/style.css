@@ -249,6 +249,21 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 }
 .gallery:has(figure) + .gallery-empty { display: none; }
 
+/* ---- Agent Shinx: intro picture ---- */
+
+.intro.with-avatar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 48px;
+  align-items: center;
+}
+.intro-avatar { grid-column: 2; grid-row: 1; width: 225px; height: auto; border-radius: 28px; }
+
+@media (max-width: 760px) {
+  .intro.with-avatar { grid-template-columns: 1fr; gap: 24px; }
+  .intro-avatar { grid-column: 1; width: 112px; border-radius: 20px; }
+}
+
 /* ---- Agent Shinx: invite ---- */
 
 .permissions { margin: 20px 0 0; padding-left: 20px; max-width: var(--measure); }

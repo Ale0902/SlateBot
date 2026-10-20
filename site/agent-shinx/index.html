@@ -11,7 +11,7 @@
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://alejodev.com/agent-shinx/">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/style.css?v=6">
+<link rel="stylesheet" href="/assets/style.css?v=7">
 <script src="/assets/gallery.js" defer></script>
 </head>
 <body>
@@ -23,21 +23,23 @@
 </header>
 
 <main class="wrap">
-  <div class="intro">
+  <div class="intro with-avatar">
+    <img class="intro-avatar" src="/assets/agent-shinx.jpg" alt="Agent Shinx's profile picture: a blue Shinx in headphones at a laptop" width="225" height="225">
+    <div>
     <p class="eyebrow"><a class="back" href="/#projects">← All projects</a></p>
     <h1>Agent Shinx</h1>
     <p class="lede">
       A Discord bot for keeping a server up to date: live scores and
-      standings, Formula 1 weekends, game showcases, Steam sales —
-      and an AI chat mode that runs on my own hardware.
+      standings, Formula 1 weekends, game showcases, Steam sales,
+      previews for social media links, and an AI chat mode that runs on my
+      own hardware.
     </p>
     <div class="actions">
-      <!-- The invite link: replace REPLACE_WITH_CLIENT_ID with the bot's
-           Application ID (Discord Developer Portal > General Information).
-           permissions=117760 is exactly the five permissions listed under
+      <!-- permissions=117760 is exactly the five permissions listed under
            "Add it to your server" below. -->
-      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=REPLACE_WITH_CLIENT_ID&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
+      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1167640593506258994&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
       <a class="button" href="#commands">See the commands</a>
+    </div>
     </div>
   </div>
 
@@ -123,6 +125,31 @@
     </ul>
   </section>
 
+  <section aria-labelledby="previews-title">
+    <h2 id="previews-title">Link previews</h2>
+    <p class="section-note">
+      Post a link from X, Reddit, Instagram or TikTok and the bot replies
+      with the post itself, so nobody has to open it. You'll see the author,
+      the text, photos, and videos that play right in the chat. You'll also
+      see likes, views and comments, and when it was posted, shown in your
+      own timezone. No commands or setup needed.
+    </p>
+    <ul class="feeds">
+      <li><span>X posts, with quote tweets, link cards, and GIFs that autoplay</span><span class="when">x.com · twitter.com</span></li>
+      <li><span>Reddit posts, with the subreddit, score and comment count</span><span class="when">reddit.com · redd.it</span></li>
+      <li><span>Instagram posts and reels, with the caption</span><span class="when">instagram.com</span></li>
+      <li><span>TikTok videos (without the watermark) and photo posts</span><span class="when">tiktok.com</span></li>
+    </ul>
+    <p class="section-note">
+      Up to three links per message all come back in one reply. Videos are
+      sent at the best quality that fits Discord's upload limit. Wrap a link
+      in <code>&lt;&gt;</code> or a spoiler to skip the preview. Sensitive
+      media is hidden behind a spoiler outside age-restricted channels. If the bot has
+      <strong>Manage Messages</strong> in a channel, it also hides Discord's
+      own preview of the link, so the post doesn't show twice.
+    </p>
+  </section>
+
   <section aria-labelledby="shots-title">
     <h2 id="shots-title">Screenshots</h2>
     <p class="section-note">What it looks like in a server.</p>
@@ -151,14 +178,14 @@
       <li><strong>View Channels</strong> and <strong>Read Message History</strong> — to see the commands you send it</li>
       <li><strong>Send Messages</strong> — to answer them</li>
       <li><strong>Embed Links</strong> — scores, standings and sales are sent as embeds</li>
-      <li><strong>Attach Files</strong> — for charts and album artwork</li>
+      <li><strong>Attach Files</strong> — for charts, album artwork, and videos in link previews</li>
     </ul>
     <p class="section-note">
       It can't kick, ban, manage roles, or change anything about your server.
       After it joins, run <code>/setchannel</code> to turn on the automatic posts.
     </p>
     <div class="actions">
-      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=REPLACE_WITH_CLIENT_ID&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
+      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1167640593506258994&amp;permissions=117760&amp;integration_type=0&amp;scope=bot+applications.commands">Add to Discord</a>
     </div>
   </section>
 </main>
