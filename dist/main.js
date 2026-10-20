@@ -1967,17 +1967,20 @@ function seasonsOf(year) {
         dayFrom,
         dayTo,
     });
+    // The six days before a holiday, and the day itself.
+    const weekOf = (id, date, dayFrom = date) => season(id, addDays(date, -6), date, dayFrom, date);
+    const dayOf = (id, date) => season(id, date, date);
     const november = day(year, 11, 1);
     // The fourth Thursday of November.
     const thanksgiving = day(year, 11, 22 + ((11 - november.getDay()) % 7));
     const seasons = [
-        season("new-year", day(year - 1, 12, 27), day(year, 1, 2), day(year - 1, 12, 31), day(year, 1, 1)),
-        season("valentines", day(year, 2, 1), day(year, 2, 14)),
-        season("st-patricks", day(year, 3, 10), day(year, 3, 17)),
-        season("fourth-of-july", day(year, 6, 28), day(year, 7, 5), day(year, 7, 4)),
-        season("halloween", day(year, 10, 1), day(year, 10, 31)),
-        season("thanksgiving", november, thanksgiving),
-        season("christmas", addDays(thanksgiving, 1), day(year, 12, 26), day(year, 12, 24), day(year, 12, 25)),
+        weekOf("new-year", day(year, 1, 1), day(year - 1, 12, 31)),
+        dayOf("valentines", day(year, 2, 14)),
+        dayOf("st-patricks", day(year, 3, 17)),
+        dayOf("fourth-of-july", day(year, 7, 4)),
+        weekOf("halloween", day(year, 10, 31)),
+        weekOf("thanksgiving", thanksgiving),
+        weekOf("christmas", day(year, 12, 25), day(year, 12, 24)),
     ];
     const hanukkah = hanukkahIn(year);
     if (hanukkah) {
@@ -2062,9 +2065,19 @@ function autoSaved() {
         return false;
     }
 }
+// Nobody's picked a theme here yet, so it's Automatic: a first visit in a
+// holiday's season opens on that holiday.
+function nothingPicked() {
+    try {
+        return localStorage.getItem(THEME_KEY) === null;
+    }
+    catch {
+        return false;
+    }
+}
 // This page's own theme; what's picked in the menu; and what that shows.
 const pageTheme = THEMES.find((t) => t.path !== undefined && t.id === html.dataset.themeId) ?? THEMES[0];
-let pickedTheme = autoSaved()
+let pickedTheme = autoSaved() || nothingPicked()
     ? autoTheme
     : THEMES.find((t) => t.holiday && t.id === html.dataset.holiday) ?? pageTheme;
 let shownTheme = resolveTheme(pickedTheme);
