@@ -179,6 +179,16 @@ function wantsFullList(question: string): boolean {
   return LIST_REQUEST_RE.test(question);
 }
 
+// Clearly about something current, which the model's training can't know --
+// searched straight away rather than leaving it to the model, which tends to
+// answer these from stale memory.
+const FRESH_INFO_RE =
+  /\b(today|tonight|tomorrow|yesterday|right now|currently|current|latest|most recent|recent|recently|newest|upcoming|this (week|weekend|month|year|season)|last (night|week|weekend|month|year|season)|next (week|game|match|month|year)|news|headlines?|scores?|standings|playoffs?|election|polls?|prices?|stock|stocks|market|weather|forecast|temperature|schedule|release date|come out|coming out|still alive|died|how old is|who won|who is winning|(19|20)\d\d)\b/i;
+
+function needsFreshInfo(question: string): boolean {
+  return FRESH_INFO_RE.test(question);
+}
+
 // Plain conversation -- a greeting, "how are you", thanks, a goodbye, a
 // question about the bot itself -- which a web search only derails. Matches
 // the whole message (one or two of these, like "hey, how's it going?"), so
@@ -190,7 +200,8 @@ const SMALL_TALK =
     // "How are you", "how you doing", "how's it hanging", "how's life treating you"...
     "how(?:'s|s| is| are| are you| you| ya| u|'re you| have you| you been| ya been)? (?:you|ya|u|doing|doin|been|going)(?: [a-z']+){0,3}",
     "how(?:'s|s| is| are| has| have) (?:it|things|life|everything|your (?:day|night|week|weekend|morning|evening|afternoon))(?: (?:going|goin|hanging|hangin|been|rolling|treating you|treatin you|today|tonight|so far|lately))*",
-    "(?:what(?:'s| is)|whats|wats|sup|so) (?:up|good|new|happening|poppin|popping|cracking|crackin|going on)(?: with you)?(?: today| lately)?",
+    "(?:what(?:'s| is)?|whats|wats|wat|sup|so) (?:up|good|new|happening|poppin|popping|cracking|crackin|going on)(?: with you)?(?: today| lately)?",
+    "wassup|wasup|wazzup|whaddup|waddup|wuddup|what it do",
     "wyd|what are you up to(?: today)?|what you up to",
     "(?:who|what) are you|what(?:'s| is) your name|what can you do|tell me about yourself|are you (?:an? )?(?:ai|bot|robot|human|real|person)",
     "(?:what(?:'s| is| are)|whats) your (?:favorite|favourite) [a-z']+(?: [a-z']+)?",
@@ -483,7 +494,8 @@ function buildSystemPrompt(tools: ToolInfo[], today: string): string {
       "feeling or a problem, acknowledge it and offer something useful (an idea or two), " +
       "and ask a natural follow-up question when it fits. No slang, no emoji, no gushing, " +
       "at most one exclamation mark, and don't end every reply with an offer to help. " +
-      "Don't add a Source line or bring up search results in small talk. You can answer " +
+      "Don't add a Source line or bring up search results in small talk, and don't " +
+      "mention the date or time unless they ask. You can answer " +
       "\"how are you\" naturally (\"Doing well, thanks for asking.\") without a lecture " +
       `about being an AI. If asked who or what you are, say you're ${CONFIG.botName}, an AI ` +
       "assistant that can look things up on the web or just chat -- and don't invent " +
@@ -502,10 +514,10 @@ function buildSystemPrompt(tools: ToolInfo[], today: string): string {
       "returned over what you remember, (3) answer the question that was actually " +
       "asked, (4) keep it short. Brevity is the first thing to give up, never accuracy.",
 
-    "Questions come with fresh search results attached below them (except plain " +
-      "conversation, and a message with an image attached -- see below) -- that " +
-      "search already ran automatically, you don't need to decide whether to do it. Use " +
-      "those results to ground any factual claim -- names, dates, rankings, recent " +
+    "Some messages come with fresh search results attached below them -- that search " +
+      "already ran automatically. Others don't, and the note with the message says " +
+      "whether to decide for yourself if a search is needed. When results are there, use " +
+      "them to ground any factual claim -- names, dates, rankings, recent " +
       "events, anything you aren't 100% certain of. If they're irrelevant (e.g. the " +
       "message is just conversation), ignore them and reply as the conversation " +
       "instructions say.",
@@ -652,10 +664,17 @@ function toolStatusLabel(name: string): string {
 
 // ---- The loop ----
 
-// Always searches first rather than leaving that to the model, which tends
-// to answer current-events questions from stale training data instead --
-// except with an image attached, where a search for "what is this?" finds
-// nothing useful and the model calls web_search itself once it's seen it.
+// Four ways a message starts:
+// - small talk: no search, just a reply;
+// - clearly current (news, scores, prices, "latest"...), or asking for a
+//   picture or a link: searched first, rather than left to the model, which
+//   tends to answer those from stale training data;
+// - an attached image: no search -- "what is this?" finds nothing useful, and
+//   the model calls web_search itself once it's seen the picture;
+// - anything else: the model decides -- it calls web_search for facts about
+//   the real world, and answers directly for advice, explanations, writing,
+//   code, opinions and conversation. If it answers and then hedges, it
+//   still gets one search (see SELF_CORRECTION_RE).
 // `image` is a base64 JPEG or null; `history` is the conversation's earlier
 // visible messages; `priorUrls` is every URL a tool returned earlier in it.
 async function runAgent(
@@ -685,11 +704,32 @@ async function runAgent(
   // "What's in this image?" is about the attachment, not a request to find one.
   const imageRequest = !image && wantsImage(question);
   const smallTalk = !image && isSmallTalk(question);
-  const timeNote = `It's currently ${now}. ${lengthRule(wantsFullList(question), smallTalk)}`;
+  const searchFirst = !image && !smallTalk && (needsFreshInfo(question) || imageRequest || wantsSource(question));
+  // Worded as a reference, not a sentence -- written as one, the model tends
+  // to repeat it at the end of a reply.
+  const timeNote = `(Current date and time, for reference only: ${now}.) ${lengthRule(wantsFullList(question), smallTalk)}`;
 
   const messages = buildPrefix(tools, history, today);
   if (smallTalk) {
     messages.push({ role: "user", content: question }, { role: "user", content: timeNote });
+  } else if (!image && !searchFirst) {
+    messages.push(
+      { role: "user", content: question },
+      {
+        role: "user",
+        content:
+          "No search has been run for this message -- decide whether it needs one. If a good " +
+          "answer depends on facts about the real world that could be wrong or out of date " +
+          "in your memory -- people, events, news, sports, prices, products, companies, " +
+          "places, statistics, dates, anything specific you aren't certain of -- reply with " +
+          "only a web_search call with a good search query. If it doesn't -- conversation, " +
+          "opinions, advice, explaining a general concept, writing or editing, code, math, " +
+          "brainstorming, or something already answered earlier in this chat -- just answer " +
+          "directly, without mentioning searching. Do one or the other, never both: either " +
+          "the search call alone, or an answer with no search call after it.\n\n" +
+          timeNote,
+      }
+    );
   } else if (image) {
     messages.push(
       { role: "user", content: question || "What's in this image?", images: [image] },
@@ -711,8 +751,9 @@ async function runAgent(
         role: "user",
         content:
           `${resultLabel} for the question above:\n${initialResults}\n\n` +
-          "Answer using these if they're relevant. If they're not relevant (e.g. this is " +
-          "just casual conversation), ignore them and answer normally. Only cite a URL that " +
+          "Answer using these if they're relevant. If the message is just conversation (a " +
+          "greeting, small talk, thanks), act as if these results weren't here: don't use, " +
+          "mention, or comment on them, and reply as the conversation instructions say. Only cite a URL that " +
           "actually appears in a tool result you received this conversation -- never one " +
           `from memory.\n\n${timeNote}`,
       }
