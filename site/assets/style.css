@@ -176,6 +176,8 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 .button.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .button:not(.primary):hover { border-color: var(--accent); }
 .button.large { padding: 18px 40px; border-radius: 6px; font-size: 19px; }
+.button.with-icon { display: inline-flex; align-items: center; gap: 10px; }
+.button.with-icon svg { width: 1.25em; height: 1.25em; flex: none; fill: currentColor; }
 
 /* ---- Agent Shinx: commands ---- */
 
@@ -267,11 +269,15 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 }
 
 /* Fade in from below on scroll (reveal.js). Only hidden once the script
-   has marked the page, so with scripts off everything just shows. */
+   has marked the page, so with scripts off everything just shows. The
+   page stays blank only until the script has tagged what to fade -- and
+   if it never does, the failsafe shows it after 3s. */
+.reveal-ready:not(.reveal-set) body { opacity: 0; animation: reveal-failsafe 0s 3s forwards; }
+@keyframes reveal-failsafe { to { opacity: 1; } }
 .reveal-ready .reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 .reveal-ready .reveal.is-visible { opacity: 1; transform: none; }
 
