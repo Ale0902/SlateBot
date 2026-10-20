@@ -175,6 +175,7 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 .button.primary { background: var(--ink); color: var(--paper); }
 .button.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .button:not(.primary):hover { border-color: var(--accent); }
+.button.large { padding: 18px 40px; border-radius: 6px; font-size: 19px; }
 
 /* ---- Agent Shinx: commands ---- */
 
@@ -253,16 +254,26 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 
 .intro.with-avatar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 48px;
   align-items: center;
 }
 .intro-avatar { grid-column: 2; grid-row: 1; width: 225px; height: auto; border-radius: 28px; }
+.hero-actions { grid-column: 1 / -1; justify-content: center; margin-top: 0; }
 
 @media (max-width: 760px) {
-  .intro.with-avatar { grid-template-columns: 1fr; gap: 24px; }
+  .intro.with-avatar { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .intro-avatar { grid-column: 1; width: 112px; border-radius: 20px; }
 }
+
+/* Fade in from below on scroll (reveal.js). Only hidden once the script
+   has marked the page, so with scripts off everything just shows. */
+.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-ready .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ---- Agent Shinx: invite ---- */
 
