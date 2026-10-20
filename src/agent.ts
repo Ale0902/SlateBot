@@ -179,6 +179,35 @@ function wantsFullList(question: string): boolean {
   return LIST_REQUEST_RE.test(question);
 }
 
+// Plain conversation -- a greeting, "how are you", thanks, a goodbye, a
+// question about the bot itself -- which a web search only derails. Matches
+// the whole message (one or two of these, like "hey, how's it going?"), so
+// anything with a real question in it still gets searched.
+const SMALL_TALK =
+  "(?:" +
+  [
+    "(?:hi|hello|hey|heya|hiya|yo|sup|howdy|greetings|good (?:morning|afternoon|evening|day)|gm)(?: there| slate| slate bot| again| everyone)?",
+    "(?:how are (?:you|u|ya)|how're you|how are things|how(?:'s| is) it going|how(?:'s| is) your day(?: going)?|how have you been|how(?:'s| is) everything|what(?:'s| is) up|whats up|wyd|what are you up to)(?: doing)?(?: today| lately)?",
+    "(?:who|what) are you|what(?:'s| is) your name|what can you do|tell me about yourself|are you (?:an? )?(?:ai|bot|robot|human|real|person)",
+    "(?:thanks|thank you|thx|ty|ok|okay|got it|makes sense|sounds good|lol|lmao|haha+|bye|goodbye|see you|see ya|cya|good night|goodnight|gn)(?: so much| a lot| again| slate)?",
+    "(?:that's |thats |that is )?(?:cool|nice|great|awesome|perfect|interesting|funny)",
+    "(?:let's|lets|can we|wanna|want to) (?:chat|talk)(?: for a bit| for a while)?",
+    "(?:i'm|im|i am) (?:bored|tired|sad|happy|stressed|lonely|excited|back|good|fine|great|ok|okay|doing (?:well|good|ok|okay|great|fine|alright))",
+    "tell me a (?:joke|story)",
+  ].join("|") +
+  ")";
+const SMALL_TALK_RE = new RegExp(`^${SMALL_TALK}(?: ${SMALL_TALK})?$`);
+
+function isSmallTalk(question: string): boolean {
+  const words = question
+    .toLowerCase()
+    .replace(/[‘’]/g, "'")
+    .replace(/[^\p{L}\p{N}' ]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return SMALL_TALK_RE.test(words);
+}
+
 // A meta message like "cite your source" makes a useless search query --
 // re-search the last real question instead.
 function pickRetryQuery(question: string, history: LlmMessage[]): string {
@@ -398,9 +427,16 @@ function timeString(): string {
   return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
 }
 
-// The length rule for this question -- exactly one of the two, chosen by
-// intent, so the model never has to balance them against each other.
-function lengthRule(fullList: boolean): string {
+// The length rule for this message -- exactly one, chosen by intent, so the
+// model never has to balance them against each other.
+function lengthRule(fullList: boolean, smallTalk: boolean): string {
+  if (smallTalk) {
+    return (
+      "This message is conversation, not something to look up -- no search was run for it. " +
+      "Reply the way a person would in a chat, usually 1-3 sentences, following the " +
+      "conversation instructions. If it does turn out to need current facts, call web_search."
+    );
+  }
   return fullList
     ? "The user explicitly asked you to list/name/enumerate everything of some kind -- " +
         "give the actual complete list they asked for, not a short summary or just a count. " +
@@ -421,9 +457,25 @@ function buildSystemPrompt(tools: ToolInfo[], today: string): string {
   ];
 
   const sections = [
-    `You are ${CONFIG.botName}, a chat assistant that works like a quick search engine. ` +
-      "How long your answer should be is given with each question. Plain, direct tone -- " +
-      "not overly casual, not full of slang or emoji.",
+    `You are ${CONFIG.botName}, a chat assistant. For anything that needs facts, you work ` +
+      "like a quick search engine; when the user just wants to talk, you hold a real " +
+      "conversation. How long your answer should be is given with each message. Plain, " +
+      "direct tone -- not overly casual, not full of slang or emoji.",
+
+    "Conversation: when the user is just talking -- a greeting, small talk, asking how " +
+      "you are or about you, thanks, telling you about their day, or chatting about an " +
+      "idea or opinion -- talk with them instead of answering like a search engine. Aim " +
+      "for roughly 60% polished assistant and 40% casual: clear, complete sentences, but " +
+      "with contractions and a little warmth and personality, the way a friendly, " +
+      "well-spoken person talks. Respond to what they actually said; when they share a " +
+      "feeling or a problem, acknowledge it and offer something useful (an idea or two), " +
+      "and ask a natural follow-up question when it fits. No slang, no emoji, no gushing, " +
+      "at most one exclamation mark, and don't end every reply with an offer to help. " +
+      "Don't add a Source line or bring up search results in small talk. You can answer " +
+      "\"how are you\" naturally (\"Doing well, thanks for asking.\") without a lecture " +
+      `about being an AI. If asked who or what you are, say you're ${CONFIG.botName}, an AI ` +
+      "assistant that can look things up on the web or just chat -- and don't invent " +
+      "anything else about yourself.",
 
     `Right now it is ${today} (the current time is given with each question). That is ` +
       `the real current date -- use it for anything ` +
@@ -438,12 +490,13 @@ function buildSystemPrompt(tools: ToolInfo[], today: string): string {
       "returned over what you remember, (3) answer the question that was actually " +
       "asked, (4) keep it short. Brevity is the first thing to give up, never accuracy.",
 
-    "Every question already comes with fresh search results attached below it (except " +
-      "one with an image attached -- see below) -- that " +
+    "Questions come with fresh search results attached below them (except plain " +
+      "conversation, and a message with an image attached -- see below) -- that " +
       "search already ran automatically, you don't need to decide whether to do it. Use " +
       "those results to ground any factual claim -- names, dates, rankings, recent " +
       "events, anything you aren't 100% certain of. If they're irrelevant (e.g. the " +
-      "question is just casual conversation), ignore them and answer normally.",
+      "message is just conversation), ignore them and reply as the conversation " +
+      "instructions say.",
 
     "The user can attach an image to a message, and when they do you can see it -- never " +
       "say you're unable to view images. Answer from what's actually in the image: describe " +
@@ -619,10 +672,13 @@ async function runAgent(
 
   // "What's in this image?" is about the attachment, not a request to find one.
   const imageRequest = !image && wantsImage(question);
-  const timeNote = `It's currently ${now}. ${lengthRule(wantsFullList(question))}`;
+  const smallTalk = !image && isSmallTalk(question);
+  const timeNote = `It's currently ${now}. ${lengthRule(wantsFullList(question), smallTalk)}`;
 
   const messages = buildPrefix(tools, history, today);
-  if (image) {
+  if (smallTalk) {
+    messages.push({ role: "user", content: question }, { role: "user", content: timeNote });
+  } else if (image) {
     messages.push(
       { role: "user", content: question || "What's in this image?", images: [image] },
       {
@@ -674,7 +730,7 @@ async function runAgent(
     const toolCall = extractToolCall(content, toolParams);
 
     if (!toolCall) {
-      if (!image && !retried && SELF_CORRECTION_RE.test(content)) {
+      if (!image && !smallTalk && !retried && SELF_CORRECTION_RE.test(content)) {
         // The model doesn't trust this answer -- search once more instead of
         // accepting "I can't confirm" as final. (Not for an image: searching
         // the text again says nothing about what's in the picture.)
