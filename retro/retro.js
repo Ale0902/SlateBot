@@ -209,6 +209,11 @@
 
     $("desktopIcon")?.addEventListener("dblclick", () => openWindow(true));
 
+    // The shortcut back to the portfolio.
+    $("homeIcon")?.addEventListener("dblclick", () => {
+      window.location.href = "https://alejodev.com/";
+    });
+
     function openWindow(fromDesktop = false) {
       resetWindowAnimation();
       appWindow.hidden = false;
