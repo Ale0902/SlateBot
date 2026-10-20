@@ -152,7 +152,9 @@ const SMALL_TALK = "(?:" +
         "tell me a (?:joke|story)",
     ].join("|") +
     ")";
-const SMALL_TALK_RE = new RegExp(`^${SMALL_TALK}(?: ${SMALL_TALK})?$`);
+// Who it's said to, tacked on the end: "what's up doc", "thanks man".
+const ADDRESSEE = "(?: (?:doc|man|bro|bruh|dude|buddy|pal|friend|mate|fam|boss|chief|sir|slate|slate bot|bot|there|everyone|y'all|yall|again))?";
+const SMALL_TALK_RE = new RegExp(`^${SMALL_TALK}${ADDRESSEE}(?: ${SMALL_TALK}${ADDRESSEE})?$`);
 function isSmallTalk(question) {
     const words = question
         .toLowerCase()
@@ -364,7 +366,9 @@ function lengthRule(fullList, smallTalk) {
     if (smallTalk) {
         return ("This message is conversation, not something to look up -- no search was run for it. " +
             "Reply the way a person would in a chat, usually 1-3 sentences, following the " +
-            "conversation instructions. If it does turn out to need current facts, call web_search.");
+            "conversation instructions. Answer it as said to you -- a greeting gets a greeting " +
+            "back -- not as a phrase to explain: no facts, trivia, songs, films, or meanings of " +
+            "the words, even if earlier answers in this chat were full of facts.");
     }
     return fullList
         ? "The user explicitly asked you to list/name/enumerate everything of some kind -- " +
