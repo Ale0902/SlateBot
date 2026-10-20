@@ -255,7 +255,7 @@ code, kbd { font-family: var(--mono); font-size: 0.88em; }
 
 @media (max-width: 560px) {
   body { font-size: 16px; }
-  .wrap { padding: 0 16px; }
+  .wrap { padding-left: 16px; padding-right: 16px; }
   .site-header nav { gap: 14px; }
   section { margin-top: 64px; }
   .project { padding: 22px; min-height: 0; }

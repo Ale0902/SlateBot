@@ -43,8 +43,11 @@ button, textarea {
 
 .app.shell {
   display: flex;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  /* On phones 100vh includes the space under the browser's address bar, so
+     the page overflows and the top bar scrolls out of view. */
+  height: 100dvh;
   background: var(--bg);
 }
 
