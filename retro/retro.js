@@ -259,41 +259,16 @@
     }
   }
 
-  // Free Unsplash photographs give the chat window a period desktop mood
-  // without bundling copyrighted Windows wallpaper into the project.
+  // Frutiger Aero wallpapers (scenes/), all released into the public domain
+  // (CC0) by the artists who made them -- see the About window's credits.
   const SCENE_KEY = "celta-chat.retroScene";
   const SCENES = [
-    {
-      id: "bliss",
-      label: "Bliss-inspired",
-      image: "url(\"https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2200&q=85\")",
-      position: "center",
-    },
-    {
-      id: "grass",
-      label: "XP grass",
-      image: "url(\"https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2200&q=85\")",
-      position: "center",
-    },
-    {
-      id: "aero",
-      label: "Aero sky",
-      image: "url(\"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=85\")",
-      position: "center",
-    },
-    {
-      id: "midnight",
-      label: "Midnight glass",
-      image: "url(\"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=85\")",
-      position: "center",
-    },
-    {
-      id: "forest",
-      label: "Green desktop",
-      image: "url(\"https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85\")",
-      position: "center",
-    },
-  ];
+    { id: "aero-bubbles", label: "Aero bubbles" },
+    { id: "violet-bubbles", label: "Violet bubbles" },
+    { id: "green-butterflies", label: "Green butterflies" },
+    { id: "aero-ocean", label: "Aero ocean" },
+    { id: "hearts", label: "Hearts" },
+  ].map((scene) => ({ ...scene, image: `url("scenes/${scene.id}.jpg")`, position: "center" }));
 
   const scenePicker = $("scenePicker");
   if (scenePicker) {

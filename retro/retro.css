@@ -52,7 +52,7 @@
   /* Screen names shown before each line of the conversation. */
   --user-sn: "Ale";
   --bot-sn: "Slate Bot";
-  --scene-image: url("https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2200&q=85");
+  --scene-image: url("scenes/aero-bubbles.jpg");
   --scene-position: center;
 
   --raised: inset 1px 1px var(--edge-light), inset -1px -1px var(--edge-dark);
