@@ -158,7 +158,7 @@
 
 :root[data-holiday] .msg.greeting .bubble {
   max-width: min(680px, 100%);
-  font-family: var(--h-font), Geist, sans-serif;
+  font-family: var(--h-font), var(--serif);
   font-size: calc(24px * var(--h-font-scale));
   line-height: 1.4;
   color: var(--h-title);
@@ -190,7 +190,7 @@
 }
 
 :root[data-holiday] .hero-title {
-  font-family: var(--h-font), Geist, sans-serif;
+  font-family: var(--h-font), var(--serif);
   font-size: calc(38px * var(--h-font-scale));
   line-height: 1.25;
   color: var(--h-title);

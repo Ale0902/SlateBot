@@ -1,22 +1,28 @@
+/* Near-black and a cyan-leaning blue, with the same serif and monospace as
+   alejodev.com (site/assets/style.css) so the two read as one site. Flat
+   color throughout -- no gradients or glows. Holidays swap the colors
+   (holidays/holidays.css). */
 :root {
   /* The accent as "r g b", for its see-through tints: rgb(var(--accent-rgb) / 0.08). */
-  --accent-rgb: 74 155 217;
+  --accent-rgb: 74 168 222;
   --bg: #06090d;
   --bg-elevated: #0d131a;
-  --bg-soft: #111b26;
-  --panel: #0f1720;
+  --bg-soft: #121b25;
+  --panel: #0d131a;
   --line: rgb(var(--accent-rgb) / 0.14);
-  --line-strong: rgb(var(--accent-rgb) / 0.22);
+  --line-strong: rgb(var(--accent-rgb) / 0.26);
   --text: #edf5ff;
   --muted: #9db5cb;
   --muted-2: #7d93ae;
-  --accent: #4a9bd9;
-  --accent-strong: #8ac3ee;
+  --accent: #4aa8de;
+  --accent-strong: #8fd0f2;
   --accent-deep: #1f5f99;
-  --sidebar-bg: rgba(9, 14, 19, 0.94);
-  --chip: rgb(var(--accent-rgb) / 0.08);
-  --bubble-user: rgb(var(--accent-rgb) / 0.12);
-  --bubble-assistant: transparent;
+  --sidebar-bg: #080c11;
+  --bar: #06090d;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 
 * {
@@ -31,7 +37,7 @@ html, body {
 }
 
 body {
-  font-family: Geist, "Segoe UI", sans-serif;
+  font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
@@ -100,7 +106,7 @@ button, textarea {
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid var(--line);
   background: transparent;
   color: var(--muted);
@@ -109,7 +115,7 @@ button, textarea {
 
 .sidebar-toggle:hover {
   color: var(--text);
-  background: rgb(var(--accent-rgb) / 0.08);
+  border-color: var(--line-strong);
 }
 
 .brand-row {
@@ -117,21 +123,23 @@ button, textarea {
   align-items: center;
   gap: 10px;
   padding: 6px 6px 12px;
+  font-family: var(--serif);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 21px;
+  letter-spacing: 0.01em;
 }
 
+/* A tiny slate: an "S" chalked in a blue frame. */
 .brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-  border: 1px solid var(--line-strong);
+  width: 26px;
+  height: 21px;
+  border-radius: 2px;
+  border: 2px solid var(--accent);
+  background: var(--bg-soft);
   display: grid;
   place-items: center;
-  font-size: 12px;
-  color: var(--bg);
-  font-weight: 800;
+  font: 600 12px/1 var(--serif);
+  color: var(--text);
 }
 
 .nav {
@@ -142,20 +150,29 @@ button, textarea {
 
 .nav-item {
   appearance: none;
-  border: 1px solid transparent;
+  border: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--muted);
+  color: var(--text);
   text-align: left;
-  padding: 9px 10px;
-  border-radius: 8px;
+  padding: 9px 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+#newChatBtn::before {
+  content: "+";
+  display: inline-block;
+  width: 1.1em;
+  margin-right: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
 }
 
 .nav-item:hover,
 .nav-item.active {
   background: rgb(var(--accent-rgb) / 0.08);
-  border-color: var(--line);
+  border-color: var(--accent);
   color: var(--text);
 }
 
@@ -173,27 +190,30 @@ button, textarea {
 }
 
 .section-label {
-  font-size: 12px;
-  color: var(--muted-2);
-  text-transform: none;
-  padding: 0 6px 4px;
+  font: 13px/1 var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 6px 6px;
 }
 
 .recent-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 2px;
   overflow-y: auto;
   min-height: 0;
 }
 
+/* The open chat is marked by a rule on its left, like a margin note. */
 .recent-item {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  padding: 8px 12px;
+  border-radius: 0;
+  border: none;
+  border-left: 2px solid transparent;
   background: none;
-  color: var(--muted);
-  font-size: 13px;
+  color: #c3d3e2;
+  font-size: 15px;
   line-height: 1.4;
   text-align: left;
   cursor: pointer;
@@ -203,26 +223,26 @@ button, textarea {
 }
 
 .recent-item:hover {
-  background: rgb(var(--accent-rgb) / 0.05);
+  border-left-color: var(--line-strong);
   color: var(--text);
 }
 
 .recent-empty {
-  padding: 8px 10px;
-  color: var(--muted-2);
-  font-size: 13px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 15px;
 }
 
 .recent-item.active {
-  background: rgb(var(--accent-rgb) / 0.08);
+  border-left-color: var(--accent);
+  background: var(--bg-elevated);
   color: var(--text);
-  border: 1px solid var(--line);
 }
 
 /* A chat's entry while it's being renamed from the right-click menu. */
 .recent-item.recent-rename {
   width: 100%;
-  border-color: var(--accent);
+  border: 1px solid var(--accent);
   background: rgb(var(--accent-rgb) / 0.1);
   color: var(--text);
   font-family: inherit;
@@ -238,9 +258,9 @@ button, textarea {
   min-width: 150px;
   padding: 4px;
   border: 1px solid var(--line-strong);
-  border-radius: 10px;
+  border-radius: 4px;
   background: var(--bg-elevated);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
 }
 
 .context-menu[hidden] {
@@ -252,7 +272,7 @@ button, textarea {
   width: 100%;
   padding: 8px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   background: none;
   color: var(--text);
   font-size: 13px;
@@ -263,7 +283,7 @@ button, textarea {
 .context-menu button:hover:not(:disabled),
 .context-menu button:focus-visible:not(:disabled) {
   outline: none;
-  background: rgb(var(--accent-rgb) / 0.14);
+  background: var(--bg-soft);
 }
 
 .context-menu button:disabled {
@@ -278,8 +298,8 @@ button, textarea {
   gap: 8px;
   padding: 10px 8px 0;
   border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 14px;
+  color: var(--text);
+  font-size: 15px;
 }
 
 /* Which model is answering, and the About button, just above the user. */
@@ -301,8 +321,8 @@ button, textarea {
 
 .model-info {
   min-width: 0;
-  color: var(--muted-2);
-  font-size: 12px;
+  color: var(--muted);
+  font: 13px/1.4 var(--mono);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -313,17 +333,17 @@ button, textarea {
 }
 
 .model-name {
-  color: var(--muted);
+  color: var(--text);
 }
 
 .about-btn {
   flex-shrink: 0;
   padding: 3px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: rgb(var(--accent-rgb) / 0.08);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: transparent;
   color: var(--muted);
-  font-size: 12px;
+  font: 13px/1.4 var(--mono);
   cursor: pointer;
 }
 
@@ -338,7 +358,7 @@ button, textarea {
   max-height: calc(100dvh - 48px);
   margin: auto;
   border: 1px solid var(--line-strong);
-  border-radius: 14px;
+  border-radius: 6px;
   background: var(--bg-elevated);
   color: var(--text);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
@@ -361,7 +381,8 @@ button, textarea {
 }
 
 .about-titlebar h2 {
-  font-size: 18px;
+  font-family: var(--serif);
+  font-size: 22px;
   font-weight: 600;
 }
 
@@ -369,7 +390,7 @@ button, textarea {
   width: 30px;
   height: 30px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: none;
   color: var(--muted);
   font-size: 20px;
@@ -396,10 +417,9 @@ button, textarea {
 
 .about-body h3 {
   margin: 18px 0 6px;
-  color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  color: var(--muted-2);
+  font: 12px/1.4 var(--mono);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -418,9 +438,8 @@ button, textarea {
 .about-note {
   margin-top: 14px;
   padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgb(var(--accent-rgb) / 0.08);
+  border-left: 2px solid var(--accent);
+  background: var(--bg-soft);
   color: var(--text);
 }
 
@@ -433,12 +452,17 @@ button, textarea {
 
 .about-ok {
   padding: 8px 20px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--bg);
   font-weight: 600;
   cursor: pointer;
+}
+
+.about-ok:hover {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
 }
 
 .avatar-mini {
@@ -516,16 +540,16 @@ button, textarea {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: rgba(10, 12, 15, 0.98);
+  background: var(--bg);
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px 14px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--line);
-  background: rgba(9, 11, 14, 0.88);
+  background: var(--bar);
 }
 
 .title-wrap {
@@ -539,12 +563,12 @@ button, textarea {
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgb(var(--accent-rgb) / 0.08);
-  border: 1px solid var(--line);
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -561,23 +585,27 @@ button, textarea {
 .title-pill.editing {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgb(var(--accent-rgb) / 0.25);
+  box-shadow: none;
 }
 
 .title-pill.editing {
   min-width: 160px;
-  background: rgb(var(--accent-rgb) / 0.14);
+  background: var(--bg-elevated);
   text-overflow: clip;
   cursor: text;
 }
 
 .share-btn {
-  border: 1px solid var(--line);
-  background: rgb(var(--accent-rgb) / 0.08);
+  border: 1px solid var(--line-strong);
+  background: transparent;
   color: var(--text);
-  border-radius: 8px;
-  padding: 7px 12px;
+  border-radius: 4px;
+  padding: 6px 12px;
   cursor: pointer;
+}
+
+.share-btn:hover {
+  border-color: var(--accent);
 }
 
 .topbar-actions {
@@ -588,19 +616,19 @@ button, textarea {
 
 .theme-picker {
   appearance: none;
-  border: 1px solid var(--line);
-  background: rgb(var(--accent-rgb) / 0.08)
+  border: 1px solid var(--line-strong);
+  background: transparent
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%239db5cb' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     no-repeat right 8px center / 12px;
   color: var(--text);
-  border-radius: 8px;
-  padding: 7px 28px 7px 12px;
+  border-radius: 4px;
+  padding: 6px 28px 6px 10px;
   font: inherit;
   cursor: pointer;
 }
 
 .theme-picker:hover {
-  border-color: var(--line-strong);
+  border-color: var(--accent);
 }
 
 .theme-picker:disabled {
@@ -629,14 +657,18 @@ button, textarea {
 }
 
 .chat::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  background: var(--line-strong);
+  border-radius: 0;
 }
 
+/* One column down the middle, read like a transcript: each message has a
+   small label over it, yours on the right. */
 .msg {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
   animation: pop 0.18s ease;
 }
 
@@ -645,7 +677,25 @@ button, textarea {
 }
 
 .msg.bot {
-  align-items: center;
+  align-items: flex-start;
+}
+
+.msg.user::before,
+.msg.bot:not(.greeting, .typing)::before {
+  margin-bottom: 6px;
+  color: var(--muted-2);
+  font: 12px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.msg.user::before {
+  content: "You";
+}
+
+.msg.bot:not(.greeting, .typing)::before {
+  content: "Slate";
+  color: var(--accent);
 }
 
 .msg.greeting {
@@ -655,11 +705,11 @@ button, textarea {
 }
 
 .msg .bubble {
-  max-width: min(760px, 85%);
+  max-width: 85%;
   width: fit-content;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.9;
+  line-height: 1.8;
   font-size: 17px;
   color: var(--text);
   padding: 0;
@@ -670,43 +720,32 @@ button, textarea {
 }
 
 .msg.user .bubble {
-  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.18), rgba(31, 95, 153, 0.12));
+  background: rgb(var(--accent-rgb) / 0.1);
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 17px;
+  border-radius: 4px;
+  padding: 10px 16px;
 }
 
 .msg.bot .bubble {
   color: var(--text);
-  width: min(760px, 78%);
+  width: 100%;
   max-width: none;
   text-align: left;
   padding: 0;
   font-weight: 400;
 }
 
-/* Replies start a set distance in from the left of the chat column (not
-   flush against it, not centered). The % keeps the inset proportional on
-   narrower windows. */
-.msg.bot:not(.greeting) {
-  align-items: flex-start;
-}
-
-.msg.bot:not(.greeting) .bubble {
-  margin-left: min(105px, 6.6%);
-}
-
 .msg.greeting .bubble {
   width: auto;
-  max-width: 420px;
+  max-width: 480px;
   background: transparent;
   border: none;
   padding: 12px 16px;
   text-align: center;
   color: var(--text);
-  font-weight: 500;
-  font-size: 17px;
+  font-family: var(--serif);
+  font-size: 22px;
+  line-height: 1.4;
 }
 
 .msg .avatar {
@@ -725,7 +764,7 @@ button, textarea {
   height: 7px;
   border-radius: 50%;
   display: inline-block;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--muted);
   animation: bounce 1s infinite ease-in-out;
 }
 
@@ -740,12 +779,14 @@ button, textarea {
 
 .msg .bubble .source {
   margin-top: 10px;
-  font-size: 14px;
+  font: 14px/1.5 var(--mono);
   color: var(--muted);
 }
 
 .msg .bubble a {
-  color: var(--accent-strong);
+  color: var(--accent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
   word-break: break-all;
 }
 
@@ -756,9 +797,9 @@ button, textarea {
   max-width: 560px;
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--bg-elevated);
   color: var(--text);
   text-decoration: none;
   line-height: 1.4;
@@ -772,13 +813,12 @@ button, textarea {
 }
 
 .msg .bubble a.link-card:hover {
-  border-color: var(--line-strong);
-  background: rgb(var(--accent-rgb) / 0.06);
+  border-color: var(--accent);
 }
 
 .msg .bubble .reply-time {
   margin-top: 8px;
-  font-size: 12px;
+  font: 12px/1.4 var(--mono);
   color: var(--muted-2);
 }
 
@@ -787,7 +827,7 @@ button, textarea {
   width: 120px;
   height: 80px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 2px;
   background: var(--bg-soft);
 }
 
@@ -817,7 +857,7 @@ button, textarea {
 }
 
 .link-card-site {
-  font-size: 12px;
+  font: 12px/1.4 var(--mono);
   color: var(--muted-2);
   white-space: nowrap;
   overflow: hidden;
@@ -848,8 +888,8 @@ button, textarea {
   margin-top: 12px;
   max-width: 100%;
   max-height: 420px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
+  border-radius: 2px;
+  border: 1px solid var(--line-strong);
 }
 
 /* An image the user attached, above the text of their message. */
@@ -865,7 +905,7 @@ button, textarea {
 .msg.user .bubble.image-only img.attachment {
   margin: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 .suggestions {
@@ -880,38 +920,38 @@ button, textarea {
 }
 
 .chip {
-  border: 1px solid var(--line);
-  background: rgb(var(--accent-rgb) / 0.05);
+  border: 1px solid var(--line-strong);
+  background: transparent;
   color: var(--muted);
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .chip:hover {
-  border-color: var(--line-strong);
-  background: rgb(var(--accent-rgb) / 0.12);
+  border-color: var(--accent);
   color: var(--text);
 }
 
+/* The message box lines up with the messages' column above it. */
 .composer {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 10px;
-  padding: 12px 14px 6px;
+  padding: 12px max(14px, calc((100% - 720px) / 2)) 6px;
   border-top: 1px solid var(--line);
-  background: rgba(9, 11, 14, 0.78);
+  background: var(--bar);
 }
 
 .disclaimer {
   margin: 0;
   padding: 4px 14px 10px;
   text-align: center;
-  font-size: 12px;
+  font: 12px/1.4 var(--mono);
   color: var(--muted-2);
-  background: rgba(9, 11, 14, 0.78);
+  background: var(--bar);
 }
 
 /* ---- Start view: an empty chat shows a centered greeting with the message
@@ -934,8 +974,10 @@ button, textarea {
 }
 
 .hero-title {
-  font-size: 30px;
-  font-weight: 500;
+  font-family: var(--serif);
+  font-size: clamp(30px, 4.5vw, 44px);
+  font-weight: 600;
+  line-height: 1.15;
   letter-spacing: -0.01em;
   color: var(--text);
 }
@@ -943,21 +985,15 @@ button, textarea {
 .workspace.is-empty .composer {
   order: 2;
   align-self: center;
-  width: min(760px, calc(100% - 32px));
+  width: min(720px, calc(100% - 32px));
   padding: 0;
   border-top: none;
   background: none;
 }
 
 .workspace.is-empty .composer textarea {
-  border-radius: 24px;
-  padding: 13px 20px 13px 50px;
-  border-color: var(--line-strong);
-  background: rgb(var(--accent-rgb) / 0.06);
-}
-
-.workspace.is-empty .composer .send {
-  border-radius: 24px;
+  padding-right: 16px;
+  padding-left: 50px;
 }
 
 .workspace.is-empty .suggestions {
@@ -973,10 +1009,6 @@ button, textarea {
   margin-bottom: auto;
 }
 
-.workspace.is-empty .chip {
-  border-radius: 999px;
-}
-
 .workspace.is-empty .disclaimer {
   order: 4;
   background: none;
@@ -986,13 +1018,15 @@ textarea {
   flex: 1;
   resize: none;
   max-height: 140px;
-  min-height: 48px;
-  border: 1px solid var(--line);
-  background: rgb(var(--accent-rgb) / 0.04);
-  border-radius: 12px;
+  min-height: 50px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elevated);
+  border-radius: 4px;
   padding: 12px 14px;
   color: var(--text);
+  line-height: 1.5;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 textarea::placeholder {
@@ -1000,23 +1034,29 @@ textarea::placeholder {
 }
 
 textarea:focus {
-  border-color: var(--line-strong);
-  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.18);
+  border-color: var(--accent);
 }
 
+/* The one solid block of color on the page. */
 button.send {
-  border: 1px solid var(--line);
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-  color: var(--text);
-  padding: 12px 16px;
-  border-radius: 10px;
+  min-height: 50px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  padding: 12px 18px;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgb(var(--accent-rgb) / 0.2);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+button.send:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
 }
 
 button.send:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -1040,7 +1080,7 @@ button.send:disabled {
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 50%;
+  border-radius: 4px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -1048,7 +1088,7 @@ button.send:disabled {
 }
 
 .attach-btn:hover {
-  background: rgb(var(--accent-rgb) / 0.12);
+  background: var(--bg-soft);
   color: var(--text);
 }
 
@@ -1067,7 +1107,7 @@ button.send:disabled {
   display: block;
   max-height: 88px;
   max-width: 160px;
-  border-radius: 10px;
+  border-radius: 2px;
   border: 1px solid var(--line-strong);
 }
 
