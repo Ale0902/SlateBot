@@ -7,8 +7,8 @@
 # Visitors reach these only through the Cloudflare Tunnel that already runs
 # on this machine (etched-tunnel, set up in ~/etched-jukebox/cloudflared):
 # nothing here is published on a host port. The tunnel sends alejodev.com,
-# www and slate to alejodev-web, which serves the portfolio and proxies
-# Slate to slate-bridge.
+# lolalejo.com, their www and slate to alejodev-web, which serves the
+# portfolio and proxies Slate to slate-bridge.
 name: alejodev
 
 services:

@@ -2,6 +2,7 @@
 # container (see docker-compose.yml).
 #
 #   alejodev.com        the portfolio, as plain files from site/
+#   lolalejo.com        the same portfolio, under a second domain
 #   slate.alejodev.com  Slate, proxied to the slate-bridge container
 #
 # Visitors come in through the Cloudflare Tunnel, which handles HTTPS, so
@@ -39,7 +40,13 @@ http://www.alejodev.com {
 	redir https://alejodev.com{uri} permanent
 }
 
-http://alejodev.com {
+http://www.lolalejo.com {
+	redir https://lolalejo.com{uri} permanent
+}
+
+# lolalejo.com is a second name for the same portfolio. The pages' canonical
+# links still say alejodev.com, so search engines list it once.
+http://alejodev.com, http://lolalejo.com {
 	import common_headers
 
 	root * /srv/site
